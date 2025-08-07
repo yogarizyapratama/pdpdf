@@ -8,6 +8,7 @@ import "@/lib/pdf-config"; // Initialize PDF.js worker globally
 import GoogleAdSenseScript from "../components/GoogleAdSenseScript";
 import AdSenseManager from "../components/AdSenseManager";
 import AdSenseDebugPanel from "../components/AdSenseDebugPanel";
+import GoogleConsentManager from "../components/GoogleConsentManager";
 // import AdTestingPanel from "../components/AdTestingPanel";
 import { ToastProvider } from '@/components/GlobalToast';
 // import BugReportButton from '@/components/BugReportButton';
@@ -104,6 +105,9 @@ export default function RootLayout({
         
         {/* Google AdSense Script */}
         <GoogleAdSenseScript />
+        
+        {/* Google Consent Management Platform */}
+        <GoogleConsentManager />
         
         {/* AdSense Manager - Prevents hydration errors and duplicate ads */}
         <AdSenseManager />
