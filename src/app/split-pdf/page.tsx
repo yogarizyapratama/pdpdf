@@ -1,6 +1,9 @@
-'use client'
+"use client"
 
-import { useState, useCallback } from 'react'
+// Force dynamic rendering to avoid SSG issues with PDF processing
+export const dynamic = 'force-dynamic'
+
+import { useState, useRef, useCallback } from 'react'
 import { Split, Download, Plus, Minus, HelpCircle, BookOpen, FileText } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'

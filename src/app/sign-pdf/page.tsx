@@ -1,5 +1,8 @@
 'use client'
 
+// Force dynamic rendering to avoid SSG issues with PDF processing
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from 'react'
 import { PDFDocument } from 'pdf-lib'
 import { PenTool } from 'lucide-react'

@@ -1,5 +1,8 @@
 'use client'
 
+// Force dynamic rendering to avoid SSG issues with PDF processing
+export const dynamic = 'force-dynamic'
+
 import { useState, useCallback } from 'react'
 import { Zap, Download, FileText, BarChart3, Eye } from 'lucide-react'
 import { PDFDocument } from 'pdf-lib'

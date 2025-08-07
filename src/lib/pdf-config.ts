@@ -1,10 +1,16 @@
 import { pdfjs } from 'react-pdf'
 
-// Configure PDF.js worker with fallback strategy
+// Configure PDF.js worker with server-side safety
 let workerInitialized = false
 
 export function configurePDFWorker() {
-  if (typeof window !== 'undefined' && !workerInitialized) {
+  // Only run in browser environment
+  if (typeof window === 'undefined') {
+    console.log('PDF.js worker configuration skipped on server-side')
+    return
+  }
+
+  if (!workerInitialized) {
     try {
       // Try local worker first
       pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
@@ -33,8 +39,10 @@ export function configurePDFWorker() {
   }
 }
 
-// Initialize worker immediately
-configurePDFWorker()
+// Server-side safety: Only initialize in browser
+if (typeof window !== 'undefined') {
+  configurePDFWorker()
+}
 
-// Also export the pdfjs instance for direct access if needed
+// Export pdfjs with safe server-side handling
 export { pdfjs }

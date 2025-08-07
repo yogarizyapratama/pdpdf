@@ -1,5 +1,8 @@
 'use client'
 
+// Force dynamic rendering to avoid SSG issues with PDF processing
+export const dynamic = 'force-dynamic'
+
 import { useState, useCallback } from 'react'
 import { FileText, Download, FileSpreadsheet, Loader } from 'lucide-react'
 import StructuredData from '@/components/StructuredData'

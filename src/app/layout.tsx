@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "@/lib/server-polyfills"; // Server-side polyfills for PDF libraries
 import "./globals.css";
 import "../styles/react-pdf.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";

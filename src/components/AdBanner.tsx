@@ -9,6 +9,7 @@ interface AdBannerProps {
 }
 
 // Pre-configured ad slots for different positions
+
 // These should be replaced with your actual Google AdSense slot IDs
 const AD_SLOTS = {
   top: process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP || '1234567890',

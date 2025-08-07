@@ -1,5 +1,8 @@
 "use client"
 
+// Force dynamic rendering to avoid SSG issues with PDF processing
+export const dynamic = 'force-dynamic'
+
 import { useState, useCallback } from 'react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
