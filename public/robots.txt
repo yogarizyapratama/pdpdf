@@ -68,6 +68,7 @@ Disallow: /
 User-agent: MJ12bot
 Disallow: /
 
-# Sitemap location
+# Sitemap location - Multiple options for reliability
 Sitemap: https://pdpdf.vercel.app/sitemap.xml
+Sitemap: https://pdpdf.vercel.app/api/sitemap
 Sitemap: https://pdpdf.vercel.app/sitemap-static.xml
