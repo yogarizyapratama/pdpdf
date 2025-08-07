@@ -1,0 +1,289 @@
+'use client';
+export const dynamic = 'force-dynamic';
+
+import { useState } from 'react';
+import { PDFDocument } from 'pdf-lib';
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import PDFThumbnail from '@/components/PDFThumbnail'
+import PDFThumbnailsGrid from '@/components/PDFThumbnailsGrid'
+import AdBanner from '@/components/AdBanner'
+import FileUpload from '@/components/FileUpload'
+import { FileText, Download } from 'lucide-react'
+export default function WatermarkPDF() {
+  const [file, setFile] = useState<File | null>(null);
+  const [watermarkText, setWatermarkText] = useState('CONFIDENTIAL');
+  const [loading, setLoading] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [totalPages, setTotalPages] = useState<number>(0);
+
+  const handleFileChange = async (files: File[]) => {
+    if (files.length > 0) {
+      const selectedFile = files[0];
+      setFile(selectedFile);
+      setDownloadUrl(null);
+      
+      // Count total pages for thumbnail display
+      try {
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(arrayBuffer);
+        const pageCount = pdfDoc.getPageCount();
+        setTotalPages(pageCount);
+      } catch (error) {
+        console.error('Error counting PDF pages:', error);
+        setTotalPages(0);
+      }
+    }
+  };
+
+  const handleWatermark = async () => {
+    if (!file) return;
+
+    // Show ad modal before processing
+    setShowAdModal(true);
+    
+    // Wait 3 seconds before processing
+    setTimeout(async () => {
+      setShowAdModal(false);
+      
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('watermarkText', watermarkText);
+
+      try {
+        const response = await fetch('/api/watermark-pdf', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          setDownloadUrl(url);
+        } else {
+          const error = await response.json();
+          alert('Error: ' + error.error);
+        }
+      } catch (error) {
+        alert('Error adding watermark: ' + error);
+      } finally {
+        setLoading(false);
+      }
+    }, 3000);
+  };
+
+  return (
+    <>
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <Header />
+        
+        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-4">
+                <div className="p-4 bg-purple-100 dark:bg-purple-900 rounded-full">
+                  <FileText className="h-12 w-12 text-purple-600 dark:text-purple-400" />
+                </div>
+              </div>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Watermark PDF
+              </h1>
+              <p className="text-xl text-gray-600 dark:text-gray-300">
+                Add custom watermark text to your PDF documents securely
+              </p>
+            </div>
+
+            {/* File Upload */}
+            {!file && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700">
+                <FileUpload 
+                  onFilesSelected={handleFileChange}
+                  multiple={false}
+                  maxSize={50}
+                  accept=".pdf"
+                />
+              </div>
+            )}
+
+            {/* File Info & Watermark Options */}
+            {file && (
+              <div className="space-y-8">
+                {/* File Info with Auto Preview */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Selected File
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300">{file.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setShowPreview(true)}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                      >
+                        Preview
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFile(null)
+                          setDownloadUrl(null)
+                        }}
+                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* PDF Thumbnails Grid */}
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                      PDF Pages Preview
+                    </h3>
+                    {totalPages > 0 && (
+                      <PDFThumbnailsGrid pdfFile={file} totalPages={totalPages} />
+                    )}
+                  </div>
+
+                  {/* Inline Ad */}
+                  <AdBanner position="middle" />
+                </div>
+
+                {/* Watermark Settings */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Watermark Settings
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Watermark Text
+                      </label>
+                      <input
+                        type="text"
+                        value={watermarkText}
+                        onChange={(e) => setWatermarkText(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Enter watermark text"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Add Watermark Button */}
+                <div className="flex justify-center">
+                  <button
+                    onClick={handleWatermark}
+                    disabled={loading || !watermarkText.trim()}
+                    className="flex items-center space-x-3 px-8 py-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-lg font-medium"
+                  >
+                    <FileText className="h-6 w-6" />
+                    <span>
+                      {loading ? 'Adding Watermark...' : 'Add Watermark'}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Download Link */}
+                {downloadUrl && (
+                  <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-6 text-center">
+                    <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4">
+                      Watermark Added Successfully!
+                    </h3>
+                    <a
+                      href={downloadUrl}
+                      download="watermarked.pdf"
+                      className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
+                    >
+                      <Download className="h-5 w-5" />
+                      <span>Download Watermarked PDF</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Info Section */}
+            <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                How to Add Watermark to PDF
+              </h3>
+              <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-300">
+                <li>Upload a PDF file using the file picker</li>
+                <li>Enter your desired watermark text</li>
+                <li>Click &quot;Add Watermark&quot; to process the file</li>
+                <li>Download the watermarked PDF</li>
+              </ol>
+              
+              <div className="mt-6 p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
+                <h4 className="font-medium text-purple-900 dark:text-purple-100 mb-2">
+                  💡 Tips
+                </h4>
+                <ul className="text-sm text-purple-700 dark:text-purple-300 space-y-1">
+                  <li>• Use watermarks to protect document authenticity</li>
+                  <li>• Common watermarks: &quot;CONFIDENTIAL&quot;, &quot;DRAFT&quot;, &quot;COPY&quot;</li>
+                  <li>• Watermarks appear on all pages of the document</li>
+                </ul>
+              </div>
+              
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+                  🔒 Privacy & Security
+                </h4>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Professional watermarking with customizable options. Add text or image watermarks to protect your documents.
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+
+      {/* PDF Preview Modal */}
+      {showPreview && file && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                PDF Preview
+              </h3>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-auto max-h-[70vh]">
+              <div className="flex justify-center">
+                <PDFThumbnail 
+                  pdfFile={file} 
+                  pageNumber={1}
+                  width={400}
+                  height={500}
+                  className="border border-gray-200 dark:border-gray-600 rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ad Modal */}
+      {showAdModal && (
+        <AdBanner position="bottom"  />
+      )}
+    </>
+  );
+}

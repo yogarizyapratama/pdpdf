@@ -1,0 +1,429 @@
+"use client"
+
+export const dynamic = 'force-dynamic'
+
+import { useState, useCallback, useEffect } from 'react'
+import { FileImage, Settings, Eye, Download } from 'lucide-react'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import FileUpload from '@/components/FileUpload'
+import { downloadBlob, formatFileSize } from '@/lib/utils'
+
+
+
+interface ConversionPage {
+  pageNumber: number
+  canvas: HTMLCanvasElement
+  selected: boolean
+}
+
+export default function PDFToJPGPage() {
+  // PDF.js worker setup (client only)
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      if (typeof window !== 'undefined') {
+        const pdfjsLib = await import('pdfjs-dist');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+      }
+    })();
+    return () => { isMounted = false; };
+  }, []);
+  const [file, setFile] = useState<File | null>(null)
+  const [pages, setPages] = useState<ConversionPage[]>([])
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false)
+  const [error, setError] = useState<string>('')
+  const [quality, setQuality] = useState<number>(0.9)
+  const [scale, setScale] = useState<number>(2)
+  const [format, setFormat] = useState<'jpeg' | 'png'>('jpeg')
+  const [conversionMode, setConversionMode] = useState<'selected' | 'all'>('all')
+
+  const handleFileSelected = useCallback(async (files: File[]) => {
+    if (files.length === 0) return
+    
+    const selectedFile = files[0]
+    setFile(selectedFile)
+    setError('')
+    setIsLoadingPreview(true)
+    setPages([])
+    
+    try {
+      const pdfjsLib = await import('pdfjs-dist')
+      const arrayBuffer = await selectedFile.arrayBuffer()
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      const numPages = pdf.numPages
+      
+      const pagesData: ConversionPage[] = []
+      
+      // Generate preview for each page
+      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum)
+        const viewport = page.getViewport({ scale: 0.5 }) // Small scale for preview
+        
+        const canvas = document.createElement('canvas')
+        const context = canvas.getContext('2d')!
+        canvas.height = viewport.height
+        canvas.width = viewport.width
+        
+        await page.render({
+          canvasContext: context,
+          viewport: viewport
+        }).promise
+        
+        pagesData.push({
+          pageNumber: pageNum,
+          canvas,
+          selected: true // Select all pages by default
+        })
+      }
+      
+      setPages(pagesData)
+    } catch (err) {
+      setError('Failed to load PDF file. Please ensure it\'s a valid PDF document.')
+      console.error('PDF loading error:', err)
+    } finally {
+      setIsLoadingPreview(false)
+    }
+  }, [])
+
+  const togglePageSelection = useCallback((pageNumber: number) => {
+    setPages(prev => prev.map(page => 
+      page.pageNumber === pageNumber 
+        ? { ...page, selected: !page.selected }
+        : page
+    ))
+  }, [])
+
+  const selectAllPages = useCallback(() => {
+    setPages(prev => prev.map(page => ({ ...page, selected: true })))
+  }, [])
+
+  const selectNoPages = useCallback(() => {
+    setPages(prev => prev.map(page => ({ ...page, selected: false })))
+  }, [])
+
+  const convertToImages = async () => {
+    if (!file) {
+      setError('Please select a PDF file')
+      return
+    }
+
+    const selectedPages = pages.filter(page => page.selected)
+    if (selectedPages.length === 0) {
+      setError('Please select at least one page to convert')
+      return
+    }
+
+    setIsProcessing(true)
+    setError('')
+
+    try {
+      const pdfjsLib = await import('pdfjs-dist')
+      const arrayBuffer = await file.arrayBuffer()
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      
+      for (const pageData of selectedPages) {
+        const page = await pdf.getPage(pageData.pageNumber)
+        const viewport = page.getViewport({ scale })
+        
+        const canvas = document.createElement('canvas')
+        const context = canvas.getContext('2d')!
+        canvas.height = viewport.height
+        canvas.width = viewport.width
+        
+        // Set white background for JPEG
+        if (format === 'jpeg') {
+          context.fillStyle = '#FFFFFF'
+          context.fillRect(0, 0, canvas.width, canvas.height)
+        }
+        
+        await page.render({
+          canvasContext: context,
+          viewport: viewport
+        }).promise
+        
+        // Convert canvas to blob
+        const blob = await new Promise<Blob>((resolve) => {
+          canvas.toBlob((blob) => {
+            resolve(blob!)
+          }, `image/${format}`, quality)
+        })
+        
+        // Download the image
+        const filename = `${file.name.replace('.pdf', '')}_page_${pageData.pageNumber}.${format}`
+        downloadBlob(blob, filename)
+      }
+      
+    } catch (err) {
+      setError('Failed to convert PDF to images. Please try again.')
+      console.error('Conversion error:', err)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const resetFile = () => {
+    setFile(null)
+    setPages([])
+    setError('')
+  }
+
+  const selectedCount = pages.filter(page => page.selected).length
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <Header />
+      
+      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="p-4 bg-green-100 dark:bg-green-900 rounded-full">
+                <FileImage className="h-12 w-12 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              PDF to JPG Converter
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Convert PDF pages to high-quality JPG or PNG images. Select specific pages or convert all pages at once.
+            </p>
+          </div>
+
+          {/* Upload Section */}
+          {!file && (
+            <div className="mb-8">
+              <FileUpload 
+                onFilesSelected={handleFileSelected}
+                multiple={false}
+                maxSize={50}
+                accept=".pdf"
+              />
+            </div>
+          )}
+
+          {/* File Info & Settings */}
+          {file && (
+            <div className="space-y-8">
+              {/* File Info */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {file.name}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300">
+                      {formatFileSize(file.size)} • {pages.length} pages
+                    </p>
+                  </div>
+                  <button
+                    onClick={resetFile}
+                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                  >
+                    Change File
+                  </button>
+                </div>
+              </div>
+
+              {/* Conversion Settings */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                  <Settings className="h-5 w-5 mr-2" />
+                  Conversion Settings
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {/* Format */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Image Format
+                    </label>
+                    <select
+                      value={format}
+                      onChange={(e) => setFormat(e.target.value as 'jpeg' | 'png')}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md"
+                    >
+                      <option value="jpeg">JPEG</option>
+                      <option value="png">PNG</option>
+                    </select>
+                  </div>
+
+                  {/* Quality */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Quality ({Math.round(quality * 100)}%)
+                    </label>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="1"
+                      step="0.1"
+                      value={quality}
+                      onChange={(e) => setQuality(parseFloat(e.target.value))}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Scale */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Resolution ({scale}x)
+                    </label>
+                    <input
+                      type="range"
+                      min="1"
+                      max="4"
+                      step="0.5"
+                      value={scale}
+                      onChange={(e) => setScale(parseFloat(e.target.value))}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Conversion Mode */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Conversion Mode
+                    </label>
+                    <select
+                      value={conversionMode}
+                      onChange={(e) => setConversionMode(e.target.value as 'selected' | 'all')}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md"
+                    >
+                      <option value="all">All Pages</option>
+                      <option value="selected">Selected Pages</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Page Preview */}
+              {pages.length > 0 && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                      <Eye className="h-5 w-5 mr-2" />
+                      Page Preview ({selectedCount} of {pages.length} selected)
+                    </h3>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={selectAllPages}
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
+                      >
+                        Select All
+                      </button>
+                      <button
+                        onClick={selectNoPages}
+                        className="px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded transition-colors"
+                      >
+                        Select None
+                      </button>
+                    </div>
+                  </div>
+
+                  {isLoadingPreview ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">Loading preview...</span>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                      {pages.map((page) => (
+                        <div
+                          key={page.pageNumber}
+                          className={`relative border-2 rounded-lg p-2 cursor-pointer transition-all ${
+                            page.selected
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                              : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                          }`}
+                          onClick={() => conversionMode === 'selected' && togglePageSelection(page.pageNumber)}
+                        >
+                          <img
+                            src={page.canvas.toDataURL()}
+                            alt={`Page ${page.pageNumber}`}
+                            className="w-full h-auto rounded"
+                          />
+                          <div className={`absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                            page.selected
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-300 text-gray-600'
+                          }`}>
+                            {page.pageNumber}
+                          </div>
+                          {conversionMode === 'selected' && (
+                            <div className={`absolute top-1 left-1 w-5 h-5 rounded border-2 flex items-center justify-center ${
+                              page.selected
+                                ? 'bg-blue-600 border-blue-600'
+                                : 'bg-white border-gray-300'
+                            }`}>
+                              {page.selected && (
+                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Error */}
+              {error && (
+                <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-red-700 dark:text-red-300">{error}</p>
+                </div>
+              )}
+
+              {/* Convert Button */}
+              <div className="flex justify-center">
+                <button
+                  onClick={convertToImages}
+                  disabled={isProcessing || selectedCount === 0}
+                  className="flex items-center space-x-3 px-8 py-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-lg font-medium"
+                >
+                  <Download className="h-6 w-6" />
+                  <span>
+                    {isProcessing 
+                      ? 'Converting...' 
+                      : `Convert ${selectedCount} ${selectedCount === 1 ? 'Page' : 'Pages'}`
+                    }
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Info Section */}
+          <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              How to Convert PDF to Images
+            </h3>
+            <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-300">
+              <li>Upload a PDF file using the file picker</li>
+              <li>Configure conversion settings: format, quality, and resolution</li>
+              <li>Choose to convert all pages or select specific pages</li>
+              <li>Click &quot;Convert&quot; to process the selected pages</li>
+              <li>Each page will be downloaded as a separate image file</li>
+            </ol>
+            
+            <div className="mt-6 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+              <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+                🔒 Privacy & Security
+              </h4>
+              <p className="text-sm text-green-700 dark:text-green-300">
+                High-quality PDF to image conversion with professional results. Convert your PDFs efficiently.
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  )
+}

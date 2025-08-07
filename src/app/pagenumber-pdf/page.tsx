@@ -1,0 +1,421 @@
+'use client'
+
+export const dynamic = 'force-dynamic'
+
+import { useState } from 'react'
+import { PDFDocument } from 'pdf-lib'
+import { Hash, Download } from 'lucide-react'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import FileUpload from '@/components/FileUpload'
+import PDFThumbnail from '@/components/PDFThumbnail'
+import PDFThumbnailsGrid from '@/components/PDFThumbnailsGrid'
+import PDFResultPreview from '@/components/PDFResultPreview'
+import PDFPageNumberPreview from '@/components/PDFPageNumberPreview'
+import PDFPageNumberGridPreview from '@/components/PDFPageNumberGridPreview'
+import PDFBeforeAfterPreview from '@/components/PDFBeforeAfterPreview'
+import AdBanner from '@/components/AdBanner';
+import { formatFileSize } from '@/lib/utils';
+
+export default function PageNumberPDF() {
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [showPreview, setShowPreview] = useState(false);
+  const [numberFormat, setNumberFormat] = useState<string>('1');
+  const [position, setPosition] = useState<string>('bottom-center');
+  const [fontSize, setFontSize] = useState<number>(12);
+  const [startNumber, setStartNumber] = useState<number>(1);
+  const [showResultPreview, setShowResultPreview] = useState(false);
+
+  const handleFileSelected = async (files: File[]) => {
+    if (files.length > 0) {
+      const selectedFile = files[0];
+      setFile(selectedFile);
+      setDownloadUrl(null);
+      
+      // Count total pages for thumbnail display
+      try {
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(arrayBuffer);
+        const pageCount = pdfDoc.getPageCount();
+        setTotalPages(pageCount);
+      } catch (error) {
+        console.error('Error counting PDF pages:', error);
+        setTotalPages(0);
+      }
+    }
+  };
+
+  const handleAddPageNumbers = async () => {
+    if (!file) return;
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('format', numberFormat);
+    formData.append('position', position);
+    formData.append('fontSize', fontSize.toString());
+    formData.append('startNumber', startNumber.toString());
+
+    try {
+      const response = await fetch('/api/pagenumber-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        setDownloadUrl(url);
+        setShowResultPreview(true);
+      } else {
+        const error = await response.json();
+        alert('Error: ' + error.error);
+      }
+    } catch (error) {
+      alert('Error adding page numbers: ' + error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <Header />
+      
+      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="p-4 bg-green-100 dark:bg-green-900 rounded-full">
+                <Hash className="h-12 w-12 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Add Page Numbers to PDF
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Automatically add page numbers to all pages of your PDF document
+            </p>
+          </div>
+
+          {/* Upload Section */}
+          {!file && (
+            <div className="mb-8">
+              <FileUpload 
+                onFilesSelected={handleFileSelected}
+                multiple={false}
+                maxSize={100}
+                accept=".pdf"
+              />
+            </div>
+          )}
+
+          {/* File Info & Options */}
+          {file && (
+            <div className="space-y-8">
+              {/* File Info */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {file.name}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300">
+                      {formatFileSize(file.size)} • {totalPages} pages
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setShowPreview(true)}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                      Preview
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFile(null)
+                        setTotalPages(0)
+                        setDownloadUrl(null)
+                      }}
+                      className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+
+                {/* PDF Thumbnails Grid */}
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    PDF Pages Preview
+                  </h3>
+                  {totalPages > 0 && (
+                    <PDFThumbnailsGrid pdfFile={file} totalPages={totalPages} />
+                  )}
+                </div>
+
+                {/* Inline Ad */}
+                <AdBanner position="middle" />
+              </div>
+
+              {/* Add Page Numbers Options */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Page Number Settings
+                </h3>
+                
+                {/* Number Format */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Number Format
+                      <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">(How page numbers appear)</span>
+                    </label>
+                    <select
+                      value={numberFormat}
+                      onChange={(e) => setNumberFormat(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="1">1, 2, 3... (Arabic Numbers)</option>
+                      <option value="i">i, ii, iii... (Roman Lowercase)</option>
+                      <option value="I">I, II, III... (Roman Uppercase)</option>
+                      <option value="a">a, b, c... (Alphabet Lowercase)</option>
+                      <option value="A">A, B, C... (Alphabet Uppercase)</option>
+                      <option value="page-1">Page 1, Page 2... (With &ldquo;Page&rdquo; text)</option>
+                      <option value="1-of-total">1 of {totalPages}, 2 of {totalPages}... (Show total)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Position
+                      <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">(Where on each page)</span>
+                    </label>
+                    <select
+                      value={position}
+                      onChange={(e) => setPosition(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="top-left">📍 Top Left</option>
+                      <option value="top-center">📍 Top Center</option>
+                      <option value="top-right">📍 Top Right</option>
+                      <option value="bottom-left">📍 Bottom Left</option>
+                      <option value="bottom-center">📍 Bottom Center (Recommended)</option>
+                      <option value="bottom-right">📍 Bottom Right</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Font Size and Start Number */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Font Size
+                    </label>
+                    <input
+                      type="range"
+                      min="8"
+                      max="24"
+                      value={fontSize}
+                      onChange={(e) => setFontSize(Number(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="text-center text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {fontSize}px
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Start Number
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={startNumber}
+                      onChange={(e) => setStartNumber(Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Preview Example */}
+                                {/* Preview Example */}
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-6">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                    📋 Live Preview - How your page numbers will look:
+                  </h4>
+                  
+                  {/* Before/After Comparison */}
+                  <div className="mb-6">
+                    <PDFBeforeAfterPreview 
+                      pdfFile={file}
+                      format={numberFormat}
+                      position={position}
+                      fontSize={fontSize}
+                      startNumber={startNumber}
+                      totalPages={totalPages}
+                    />
+                  </div>
+                  
+                  {/* Single Page and Grid Preview */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                    <PDFPageNumberPreview 
+                      pdfFile={file}
+                      format={numberFormat}
+                      position={position}
+                      fontSize={fontSize}
+                      startNumber={startNumber}
+                      totalPages={totalPages}
+                    />
+                    
+                    <PDFPageNumberGridPreview 
+                      pdfFile={file}
+                      format={numberFormat}
+                      position={position}
+                      fontSize={fontSize}
+                      startNumber={startNumber}
+                      totalPages={totalPages}
+                      maxPages={4}
+                    />
+                  </div>
+                  
+                  {/* Sample sequence */}
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      📄 Complete sequence for all {totalPages} pages:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {Array.from({ length: Math.min(8, totalPages) }, (_, i) => {
+                        const pageNum = startNumber + i;
+                        let displayText = '';
+                        
+                        switch (numberFormat) {
+                          case '1':
+                            displayText = pageNum.toString();
+                            break;
+                          case 'i':
+                            displayText = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii'][i] || 'i';
+                            break;
+                          case 'I':
+                            displayText = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'][i] || 'I';
+                            break;
+                          case 'a':
+                            displayText = String.fromCharCode(97 + i);
+                            break;
+                          case 'A':
+                            displayText = String.fromCharCode(65 + i);
+                            break;
+                          case 'page-1':
+                            displayText = `Page ${pageNum}`;
+                            break;
+                          case '1-of-total':
+                            displayText = `${pageNum} of ${totalPages}`;
+                            break;
+                        }
+                        
+                        return (
+                          <span 
+                            key={i}
+                            className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium border-2 border-green-200 dark:border-green-700"
+                            style={{ fontSize: `${Math.max(12, fontSize - 2)}px` }}
+                          >
+                            {displayText}
+                          </span>
+                        );
+                      })}
+                      {totalPages > 8 && (
+                        <span className="text-gray-500 px-2 py-1 bg-gray-100 dark:bg-gray-600 rounded-full text-sm">
+                          +{totalPages - 8} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleAddPageNumbers}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg transition-colors"
+                >
+                  <Hash className="h-5 w-5" />
+                  <span>{loading ? 'Adding Page Numbers...' : 'Add Page Numbers'}</span>
+                </button>
+              </div>
+
+              {/* Download Result */}
+              {downloadUrl && (
+                <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
+                      Page Numbers Added Successfully!
+                    </h3>
+                    <button
+                      onClick={() => setShowResultPreview(true)}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
+                    >
+                      Preview Result
+                    </button>
+                  </div>
+                  <div className="text-center">
+                    <a
+                      href={downloadUrl}
+                      download="numbered.pdf"
+                      className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
+                    >
+                      <Download className="h-5 w-5" />
+                      <span>Download Numbered PDF</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Preview Modal */}
+      {showPreview && file && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Original PDF Preview</h3>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-auto max-h-[70vh]">
+              <div className="flex justify-center p-4">
+                <PDFThumbnail 
+                  pdfFile={file} 
+                  pageNumber={1}
+                  width={400}
+                  height={500}
+                  className="border border-gray-200 dark:border-gray-600 rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Result Preview Modal */}
+      {showResultPreview && downloadUrl && (
+        <PDFResultPreview
+          pdfUrl={downloadUrl}
+          totalPages={totalPages}
+          onClose={() => setShowResultPreview(false)}
+        />
+      )}
+
+      <Footer />
+    </div>
+  );
+}

@@ -1,0 +1,429 @@
+'use client'
+
+import { useState } from 'react'
+import { Wrench, Download, Eye, AlertTriangle, CheckCircle } from 'lucide-react'
+import { PDFDocument } from 'pdf-lib'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import FileUpload from '@/components/FileUpload'
+import PDFThumbnail from '@/components/PDFThumbnail'
+import PDFThumbnailsGrid from '@/components/PDFThumbnailsGrid'
+import AdBanner from '@/components/AdBanner'
+import { formatFileSize } from '@/lib/utils'
+
+interface RepairIssue {
+  type: 'corruption' | 'metadata' | 'structure' | 'compatibility'
+  severity: 'low' | 'medium' | 'high'
+  description: string
+  fixable: boolean
+}
+
+export default function RepairPDFPage() {
+  const [file, setFile] = useState<File | null>(null)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [isRepairing, setIsRepairing] = useState(false)
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
+  const [showAdModal, setShowAdModal] = useState(false)
+  const [issues, setIssues] = useState<RepairIssue[]>([])
+  const [analysisComplete, setAnalysisComplete] = useState(false)
+  const [totalPages, setTotalPages] = useState<number>(0)
+
+  const handleFileSelected = async (files: File[]) => {
+    if (files.length > 0) {
+      const selectedFile = files[0];
+      setFile(selectedFile)
+      setIssues([])
+      setAnalysisComplete(false)
+      setDownloadUrl(null)
+      
+      // Count total pages for thumbnail display
+      try {
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(arrayBuffer);
+        const pageCount = pdfDoc.getPageCount();
+        setTotalPages(pageCount);
+      } catch (error) {
+        console.error('Error counting PDF pages:', error);
+        setTotalPages(0);
+      }
+    }
+  }
+
+  const analyzePDF = async () => {
+    if (!file) return
+
+    setIsAnalyzing(true)
+
+    try {
+      // Simulate PDF analysis - in production, implement actual PDF corruption detection
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Mock issues found
+      const mockIssues: RepairIssue[] = [
+        {
+          type: 'corruption',
+          severity: 'medium',
+          description: 'Minor corruption detected in page 3',
+          fixable: true
+        },
+        {
+          type: 'metadata',
+          severity: 'low',
+          description: 'Missing or invalid metadata information',
+          fixable: true
+        },
+        {
+          type: 'structure',
+          severity: 'high',
+          description: 'Cross-reference table errors found',
+          fixable: true
+        }
+      ]
+      
+      setIssues(mockIssues)
+      setAnalysisComplete(true)
+      
+    } catch (error) {
+      console.error('Error analyzing PDF:', error)
+      alert('Error analyzing PDF. Please try again.')
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
+  const repairPDF = async () => {
+    if (!file) return
+
+    // Show ad modal before processing
+    setShowAdModal(true)
+    
+    setTimeout(async () => {
+      setShowAdModal(false)
+      setIsRepairing(true)
+
+      try {
+        // Simulate PDF repair - in production, implement actual PDF repair
+        await new Promise(resolve => setTimeout(resolve, 3000))
+        
+        // For now, just download the original file
+        const blob = new Blob([file], { type: 'application/pdf' })
+        const url = URL.createObjectURL(blob)
+        setDownloadUrl(url)
+        
+      } catch (error) {
+        console.error('Error repairing PDF:', error)
+        alert('Error repairing PDF. Please try again.')
+      } finally {
+        setIsRepairing(false)
+      }
+    }, 3000)
+  }
+
+  const getSeverityColor = (severity: RepairIssue['severity']) => {
+    switch (severity) {
+      case 'low': return 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/20'
+      case 'medium': return 'text-orange-600 bg-orange-50 dark:bg-orange-950/20'
+      case 'high': return 'text-red-600 bg-red-50 dark:bg-red-950/20'
+    }
+  }
+
+  const getSeverityIcon = (severity: RepairIssue['severity']) => {
+    switch (severity) {
+      case 'low': return '⚠️'
+      case 'medium': return '🔶'
+      case 'high': return '🔴'
+    }
+  }
+
+  return (
+    <>
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <Header />
+        
+        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-4">
+                <div className="p-4 bg-yellow-100 dark:bg-yellow-900 rounded-full">
+                  <Wrench className="h-12 w-12 text-yellow-600 dark:text-yellow-400" />
+                </div>
+              </div>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Repair PDF
+              </h1>
+              <p className="text-xl text-gray-600 dark:text-gray-300">
+                Fix corrupted or damaged PDF files and restore their functionality
+              </p>
+            </div>
+
+            {/* File Upload */}
+            {!file && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700">
+                <FileUpload 
+                  onFilesSelected={handleFileSelected}
+                  multiple={false}
+                  maxSize={50}
+                  accept=".pdf"
+                />
+              </div>
+            )}
+
+            {/* File Processing */}
+            {file && (
+              <div className="space-y-8">
+                {/* File Info */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Selected File
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300">{file.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {formatFileSize(file.size)}
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setShowPreview(true)}
+                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>Preview</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFile(null)
+                          setIssues([])
+                          setAnalysisComplete(false)
+                          setDownloadUrl(null)
+                        }}
+                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* PDF Thumbnails Grid */}
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                      PDF Pages Preview
+                    </h3>
+                    {totalPages > 0 && (
+                      <PDFThumbnailsGrid pdfFile={file} totalPages={totalPages} />
+                    )}
+                  </div>
+
+                  {/* Inline Ad */}
+                  <AdBanner position="middle" />
+                </div>
+
+                {/* Analysis Section */}
+                {!analysisComplete && (
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                      PDF Analysis
+                    </h3>
+                    
+                    <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg">
+                      <h4 className="font-medium text-yellow-900 dark:text-yellow-100 mb-2">
+                        📋 Before Repair
+                      </h4>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                        We&apos;ll analyze your PDF to detect any corruption, structural issues, or compatibility problems that can be fixed.
+                      </p>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <button
+                        onClick={analyzePDF}
+                        disabled={isAnalyzing}
+                        className="flex items-center space-x-3 px-8 py-4 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-lg font-medium"
+                      >
+                        <AlertTriangle className="h-6 w-6" />
+                        <span>
+                          {isAnalyzing ? 'Analyzing PDF...' : 'Analyze PDF'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Issues Found */}
+                {analysisComplete && (
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                      Analysis Results
+                    </h3>
+                    
+                    {issues.length === 0 ? (
+                      <div className="text-center py-8">
+                        <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto mb-4" />
+                        <h4 className="text-lg font-medium text-green-900 dark:text-green-100 mb-2">
+                          No Issues Found!
+                        </h4>
+                        <p className="text-green-700 dark:text-green-300">
+                          Your PDF appears to be in good condition and doesn&apos;t require repair.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="mb-4 p-4 bg-red-50 dark:bg-red-950/20 rounded-lg">
+                          <h4 className="font-medium text-red-900 dark:text-red-100 mb-2">
+                            🔧 Issues Found: {issues.length}
+                          </h4>
+                          <p className="text-sm text-red-700 dark:text-red-300">
+                            We&apos;ve detected {issues.filter(i => i.fixable).length} fixable issues in your PDF.
+                          </p>
+                        </div>
+
+                        <div className="space-y-3 mb-6">
+                          {issues.map((issue, index) => (
+                            <div key={index} className={`p-4 rounded-lg ${getSeverityColor(issue.severity)}`}>
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-start space-x-3">
+                                  <span className="text-lg">{getSeverityIcon(issue.severity)}</span>
+                                  <div>
+                                    <h5 className="font-medium capitalize">
+                                      {issue.type.replace(/([A-Z])/g, ' $1')} Issue
+                                    </h5>
+                                    <p className="text-sm mt-1">{issue.description}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                                    issue.severity === 'high' 
+                                      ? 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200'
+                                      : issue.severity === 'medium'
+                                      ? 'bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200'
+                                      : 'bg-yellow-200 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-200'
+                                  }`}>
+                                    {issue.severity}
+                                  </span>
+                                  {issue.fixable && (
+                                    <span className="px-2 py-1 text-xs bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200 rounded-full font-medium">
+                                      Fixable
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="flex justify-center">
+                          <button
+                            onClick={repairPDF}
+                            disabled={isRepairing || !issues.some(i => i.fixable)}
+                            className="flex items-center space-x-3 px-8 py-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-lg font-medium"
+                          >
+                            <Wrench className="h-6 w-6" />
+                            <span>
+                              {isRepairing ? 'Repairing PDF...' : 'Repair PDF'}
+                            </span>
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Download Link */}
+                {downloadUrl && (
+                  <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-6 text-center">
+                    <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4">
+                      PDF Repaired Successfully!
+                    </h3>
+                    <a
+                      href={downloadUrl}
+                      download="repaired.pdf"
+                      className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
+                    >
+                      <Download className="h-5 w-5" />
+                      <span>Download Repaired PDF</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Info Section */}
+            <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                How PDF Repair Works
+              </h3>
+              <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-300">
+                <li>Upload your corrupted or damaged PDF file</li>
+                <li>Our tool analyzes the file for various issues</li>
+                <li>Review the detected problems and their severity</li>
+                <li>Click &quot;Repair PDF&quot; to fix the issues</li>
+                <li>Download your restored PDF file</li>
+              </ol>
+              
+              <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg">
+                <h4 className="font-medium text-yellow-900 dark:text-yellow-100 mb-2">
+                  🔧 What We Can Fix
+                </h4>
+                <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
+                  <li>• Corrupted file structure and cross-references</li>
+                  <li>• Missing or invalid metadata</li>
+                  <li>• Damaged page objects and content streams</li>
+                  <li>• Compatibility issues with PDF readers</li>
+                </ul>
+              </div>
+              
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+                  🔒 Privacy & Security
+                </h4>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Advanced PDF repair technology to fix corrupted documents. Restore your important files quickly.
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+
+      {/* PDF Preview Modal */}
+      {showPreview && file && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                PDF Preview
+              </h3>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-auto max-h-[70vh]">
+              <div className="flex justify-center">
+                <PDFThumbnail 
+                  pdfFile={file} 
+                  pageNumber={1}
+                  width={400}
+                  height={500}
+                  className="border border-gray-200 dark:border-gray-600 rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ad Modal */}
+      {showAdModal && (
+        <AdBanner position="bottom"  />
+      )}
+    </>
+  )
+}

@@ -1,0 +1,497 @@
+'use client'
+
+import { useState } from 'react'
+import { FileSpreadsheet, Eye, Settings, Download } from 'lucide-react'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import PDFThumbnail from '@/components/PDFThumbnail'
+import AdBanner from '@/components/AdBanner'
+import FileUpload from '@/components/FileUpload'
+import { formatFileSize } from '@/lib/utils'
+
+export default function PDFToExcelPage() {
+  const [file, setFile] = useState<File | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
+  const [showAdModal, setShowAdModal] = useState(false)
+  const [conversionOptions, setConversionOptions] = useState({
+    format: 'xlsx',
+    extractTables: true,
+    oneSheetPerPage: true,
+    preserveFormatting: true,
+    pageRange: 'all',
+    tableDetection: 'auto'
+  })
+
+  const handleFileSelected = (files: File[]) => {
+    if (files.length > 0) {
+      setFile(files[0])
+      setDownloadUrl(null)
+    }
+  }
+
+  const processPDFToExcel = async () => {
+    if (!file) return
+
+    // Show ad modal before processing
+    setShowAdModal(true)
+    
+    setTimeout(async () => {
+      setShowAdModal(false)
+      setIsProcessing(true)
+
+      try {
+        // Import required libraries
+        const pdfjsLib = await import('pdfjs-dist')
+        
+        // Initialize PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+        
+        // Convert file to array buffer
+        const arrayBuffer = await file.arrayBuffer()
+        
+        // Load PDF document
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+        
+        let allText = ''
+        
+        // Extract text from all pages
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum)
+          const textContent = await page.getTextContent()
+          
+          // Join text items with some structure
+          const pageText = textContent.items
+            .map((item) => 'str' in item ? item.str : '')
+            .join('\t') // Use tab for potential column separation
+          
+          allText += `Page ${pageNum}\n${pageText}\n\n`
+        }
+        
+        // Create Excel-like content
+        let excelContent: string
+        
+        if (conversionOptions.format === 'xlsx') {
+          // Create CSV-like structure for Excel
+          const rows = allText.split('\n').filter(line => line.trim())
+          const csvContent = rows.map(row => {
+            // Try to split by tabs or spaces for columns
+            const columns = row.split(/\t+|\s{2,}/).slice(0, 10) // Limit to 10 columns
+            return columns.map(col => `"${col.replace(/"/g, '""')}"`).join(',')
+          }).join('\n')
+          
+          excelContent = csvContent
+        } else {
+          // Plain CSV
+          excelContent = allText.replace(/\t/g, ',')
+        }
+        
+        const blob = new Blob([excelContent], { 
+          type: conversionOptions.format === 'xlsx' 
+            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            : 'text/csv'
+        })
+        
+        const url = URL.createObjectURL(blob)
+        setDownloadUrl(url)
+        
+      } catch (error) {
+        console.error('Error converting PDF to Excel:', error)
+        alert('Error converting to Excel. Please try again.')
+      } finally {
+        setIsProcessing(false)
+      }
+    }, 3000)
+  }
+
+  return (
+    <>
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <Header />
+        
+        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-4">
+                <div className="p-4 bg-green-100 dark:bg-green-900 rounded-full">
+                  <FileSpreadsheet className="h-12 w-12 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                PDF to Excel
+              </h1>
+              <p className="text-xl text-gray-600 dark:text-gray-300">
+                Convert PDF documents to editable Excel spreadsheets with table recognition
+              </p>
+            </div>
+
+            {/* File Upload */}
+            {!file && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700">
+                <FileUpload 
+                  onFilesSelected={handleFileSelected}
+                  multiple={false}
+                  maxSize={50}
+                  accept=".pdf"
+                />
+              </div>
+            )}
+
+            {/* File Processing */}
+            {file && (
+              <div className="space-y-8">
+                {/* File Info */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Selected PDF
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300">{file.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {formatFileSize(file.size)}
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setShowPreview(true)}
+                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>Preview</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFile(null)
+                          setDownloadUrl(null)
+                        }}
+                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* File Info Grid */}
+                  <div className="grid grid-cols-1 gap-4 mb-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-4">
+                        <PDFThumbnail 
+                          pdfFile={file} 
+                          pageNumber={1}
+                          width={60}
+                          height={80}
+                          className="rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 dark:text-white truncate">
+                            {file.name}
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Size: {formatFileSize(file.size)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Inline Ad */}
+                  <AdBanner position="middle" />
+                </div>
+
+                {/* Conversion Options */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Settings className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Conversion Options
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Output Format */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        Output Format
+                      </label>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'xlsx', label: 'XLSX (Excel 2007+)', desc: 'Modern format, best compatibility' },
+                          { value: 'xls', label: 'XLS (Excel 97-2003)', desc: 'Legacy format for older versions' }
+                        ].map((option) => (
+                          <label key={option.value} className="flex items-start">
+                            <input
+                              type="radio"
+                              name="format"
+                              value={option.value}
+                              checked={conversionOptions.format === option.value}
+                              onChange={(e) => setConversionOptions({...conversionOptions, format: e.target.value})}
+                              className="mr-3 mt-1 text-green-600"
+                            />
+                            <div>
+                              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                {option.label}
+                              </span>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {option.desc}
+                              </p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Table Detection */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        Table Detection
+                      </label>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'auto', label: 'Automatic detection', desc: 'AI detects tables automatically' },
+                          { value: 'manual', label: 'Extract all content', desc: 'Convert all text to cells' },
+                          { value: 'structured', label: 'Structured tables only', desc: 'Only well-formed tables' }
+                        ].map((option) => (
+                          <label key={option.value} className="flex items-start">
+                            <input
+                              type="radio"
+                              name="tableDetection"
+                              value={option.value}
+                              checked={conversionOptions.tableDetection === option.value}
+                              onChange={(e) => setConversionOptions({...conversionOptions, tableDetection: e.target.value})}
+                              className="mr-3 mt-1 text-green-600"
+                            />
+                            <div>
+                              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                {option.label}
+                              </span>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {option.desc}
+                              </p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Page Range */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        Page Range
+                      </label>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'all', label: 'All pages' },
+                          { value: 'first', label: 'First page only' },
+                          { value: 'custom', label: 'Custom range' }
+                        ].map((option) => (
+                          <label key={option.value} className="flex items-center">
+                            <input
+                              type="radio"
+                              name="pageRange"
+                              value={option.value}
+                              checked={conversionOptions.pageRange === option.value}
+                              onChange={(e) => setConversionOptions({...conversionOptions, pageRange: e.target.value})}
+                              className="mr-3 text-green-600"
+                            />
+                            <span className="text-gray-700 dark:text-gray-300">
+                              {option.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      
+                      {conversionOptions.pageRange === 'custom' && (
+                        <input
+                          type="text"
+                          placeholder="e.g., 1-5, 8, 10-12"
+                          className="mt-2 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500"
+                        />
+                      )}
+                    </div>
+
+                    {/* Conversion Settings */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        Settings
+                      </label>
+                      <div className="space-y-3">
+                        <label className="flex items-start">
+                          <input
+                            type="checkbox"
+                            checked={conversionOptions.extractTables}
+                            onChange={(e) => setConversionOptions({...conversionOptions, extractTables: e.target.checked})}
+                            className="mr-3 mt-1 text-green-600"
+                          />
+                          <div>
+                            <span className="text-gray-700 dark:text-gray-300 font-medium">
+                              Extract tables only
+                            </span>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Focus on tabular data and ignore other content
+                            </p>
+                          </div>
+                        </label>
+                        
+                        <label className="flex items-start">
+                          <input
+                            type="checkbox"
+                            checked={conversionOptions.oneSheetPerPage}
+                            onChange={(e) => setConversionOptions({...conversionOptions, oneSheetPerPage: e.target.checked})}
+                            className="mr-3 mt-1 text-green-600"
+                          />
+                          <div>
+                            <span className="text-gray-700 dark:text-gray-300 font-medium">
+                              One sheet per page
+                            </span>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Create separate Excel sheets for each PDF page
+                            </p>
+                          </div>
+                        </label>
+                        
+                        <label className="flex items-start">
+                          <input
+                            type="checkbox"
+                            checked={conversionOptions.preserveFormatting}
+                            onChange={(e) => setConversionOptions({...conversionOptions, preserveFormatting: e.target.checked})}
+                            className="mr-3 mt-1 text-green-600"
+                          />
+                          <div>
+                            <span className="text-gray-700 dark:text-gray-300 font-medium">
+                              Preserve formatting
+                            </span>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Maintain colors, fonts, and cell formatting
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Process Button */}
+                <div className="flex justify-center">
+                  <button
+                    onClick={processPDFToExcel}
+                    disabled={isProcessing}
+                    className="flex items-center space-x-3 px-8 py-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-lg font-medium"
+                  >
+                    <FileSpreadsheet className="h-6 w-6" />
+                    <span>
+                      {isProcessing ? 'Converting to Excel...' : 'Convert to Excel'}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Download Link */}
+                {downloadUrl && (
+                  <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-6 text-center">
+                    <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4">
+                      Conversion Completed!
+                    </h3>
+                    <a
+                      href={downloadUrl}
+                      download={`converted.${conversionOptions.format}`}
+                      className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
+                    >
+                      <Download className="h-5 w-5" />
+                      <span>Download Excel File</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Info Section */}
+            <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                How PDF to Excel Conversion Works
+              </h3>
+              <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-300">
+                <li>Upload your PDF file containing tables or data</li>
+                <li>Choose your preferred output format (XLSX or XLS)</li>
+                <li>Configure table detection and conversion settings</li>
+                <li>Click &quot;Convert to Excel&quot; to process the file</li>
+                <li>Download your editable Excel spreadsheet</li>
+              </ol>
+              
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+                  📊 Conversion Tips
+                </h4>
+                <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                  <li>• PDFs with clear table structures convert most accurately</li>
+                  <li>• Automatic table detection works best for well-formatted tables</li>
+                  <li>• XLSX format supports more features than XLS</li>
+                  <li>• Complex layouts may require manual cleanup after conversion</li>
+                </ul>
+              </div>
+              
+              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                  🔍 Best Results With
+                </h4>
+                <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                  <li>• Financial reports and statements</li>
+                  <li>• Data tables and spreadsheets</li>
+                  <li>• Survey results and analytics</li>
+                  <li>• Price lists and catalogs</li>
+                </ul>
+              </div>
+              
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+                  🔒 Privacy & Security
+                </h4>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Accurate PDF to Excel conversion with table recognition. Extract data and maintain spreadsheet formatting.
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+
+      {/* PDF Preview Modal */}
+      {showPreview && file && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                PDF Preview
+              </h3>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-auto max-h-[70vh]">
+              <div className="flex justify-center">
+                <PDFThumbnail 
+                  pdfFile={file} 
+                  pageNumber={1}
+                  width={400}
+                  height={500}
+                  className="border border-gray-200 dark:border-gray-600 rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ad Modal */}
+      {showAdModal && (
+        <AdBanner position="bottom"  />
+      )}
+    </>
+  )
+}

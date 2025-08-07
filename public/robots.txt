@@ -1,0 +1,44 @@
+User-agent: *
+Allow: /
+
+# High priority PDF tools for better crawling
+Allow: /merge-pdf
+Allow: /split-pdf
+Allow: /compress-pdf
+Allow: /pdf-to-jpg
+Allow: /pdf-to-word
+Allow: /word-to-pdf
+Allow: /pdf-to-excel
+Allow: /excel-to-pdf
+Allow: /pdf-to-powerpoint
+Allow: /powerpoint-to-pdf
+Allow: /jpg-to-pdf
+Allow: /html-to-pdf
+Allow: /protect-pdf
+Allow: /unlock-pdf
+Allow: /sign-pdf
+Allow: /watermark-pdf
+Allow: /rotate-pdf
+Allow: /crop-pdf
+Allow: /ocr-pdf
+Allow: /repair-pdf
+Allow: /scan-to-pdf
+Allow: /organize-pdf
+Allow: /extract-pages
+Allow: /remove-pages
+Allow: /pagenumber-pdf
+Allow: /compare-pdf
+
+# Block access to sensitive areas
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+Disallow: /.well-known/
+Disallow: /temp/
+Disallow: /uploads/
+
+# Crawl delay for respectful crawling
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://pdf-all-in-one.com/sitemap.xml

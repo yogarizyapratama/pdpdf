@@ -1,0 +1,28 @@
+# ads.txt file for PDF All-in-One
+# This file is used by advertisers to verify authorized sellers
+# Replace the example publisher ID with your actual Google AdSense publisher ID
+
+# Google AdSense - Replace with your actual publisher ID
+# google.com, pub-XXXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+
+# Example format for other ad networks (uncomment and modify as needed):
+# Format: domain, publisher_id, relationship_type, tag_id
+
+# Google Ad Manager (if using)
+# google.com, pub-XXXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+
+# Other popular ad networks (examples):
+# media.net, XXXXXXXXX, RESELLER, 8CUX092ZESWDSW23
+# indexexchange.com, XXXXXXXXX, RESELLER, 50b1c356f2c5c8fc
+# pubmatic.com, XXXXXXXXX, RESELLER, 5d62403b186f2ace
+# openx.com, XXXXXXXXX, RESELLER, 6a698e2ec38604c6
+# rubiconproject.com, XXXXXXXXX, RESELLER, 0bfd66d529a55807
+
+# Instructions:
+# 1. Replace pub-XXXXXXXXXXXXXXXXX with your actual Google AdSense Publisher ID
+# 2. Uncomment the Google AdSense line above
+# 3. Add any other ad networks you're using
+# 4. Ensure this file is accessible at https://your-domain.com/ads.txt
+# 5. Test the file accessibility before going live
+
+# Last updated: $(date +%Y-%m-%d)

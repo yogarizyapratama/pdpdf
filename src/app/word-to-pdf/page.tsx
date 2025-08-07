@@ -1,0 +1,416 @@
+'use client'
+
+// Force dynamic rendering to avoid SSR issues with mammoth.js and html2pdf.js
+export const dynamic = 'force-dynamic'
+
+import { useState, useCallback } from 'react'
+import { FileText, Download, AlertCircle } from 'lucide-react'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import FileUpload from '@/components/FileUpload'
+import { formatFileSize } from '@/lib/utils'
+
+export default function WordToPDFPage() {
+  const [file, setFile] = useState<File | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [error, setError] = useState<string>('')
+  const [previewHtml, setPreviewHtml] = useState<string>('')
+  const [conversionOptions, setConversionOptions] = useState({
+    pageSize: 'A4',
+    orientation: 'portrait',
+    margin: 1,
+    includeImages: true
+  })
+
+  const handleFileSelected = useCallback(async (files: File[]) => {
+    if (files.length === 0) return
+    
+    const selectedFile = files[0]
+    
+    // Validate file type
+    if (!selectedFile.name.toLowerCase().endsWith('.docx')) {
+      setError('Please select a valid .docx file (Word 2007 or later)')
+      return
+    }
+    
+    setFile(selectedFile)
+    setError('')
+    setPreviewHtml('')
+    
+    try {
+      // Generate preview
+      const mammoth = await import('mammoth')
+      const arrayBuffer = await selectedFile.arrayBuffer()
+      const result = await mammoth.convertToHtml({ arrayBuffer })
+      
+      if (result.messages.length > 0) {
+        console.warn('Conversion warnings:', result.messages)
+      }
+      
+      setPreviewHtml(result.value)
+    } catch (err) {
+      setError('Failed to read Word document. Please ensure it\'s a valid .docx file.')
+      console.error('Word reading error:', err)
+    }
+  }, [])
+
+  const convertToPDF = async () => {
+    if (!file || !previewHtml) {
+      setError('Please select a valid Word document')
+      return
+    }
+
+    setIsProcessing(true)
+    setError('')
+
+    try {
+      // Convert Word to HTML first
+      const mammoth = await import('mammoth')
+      const arrayBuffer = await file.arrayBuffer()
+      const result = await mammoth.convertToHtml({ 
+        arrayBuffer
+      })
+      
+      // Create styled HTML for PDF conversion
+      const styledHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body {
+              font-family: 'Times New Roman', serif;
+              font-size: 12pt;
+              line-height: 1.5;
+              color: #000;
+              max-width: 100%;
+              margin: 0;
+              padding: 20px;
+            }
+            h1, h2, h3, h4, h5, h6 {
+              color: #000;
+              margin-top: 20px;
+              margin-bottom: 10px;
+            }
+            h1 { font-size: 24pt; }
+            h2 { font-size: 18pt; }
+            h3 { font-size: 14pt; }
+            p {
+              margin-bottom: 12px;
+              text-align: justify;
+            }
+            table {
+              border-collapse: collapse;
+              width: 100%;
+              margin: 10px 0;
+            }
+            table, th, td {
+              border: 1px solid #000;
+              padding: 5px;
+            }
+            img {
+              max-width: 100%;
+              height: auto;
+              display: block;
+              margin: 10px 0;
+            }
+            ul, ol {
+              margin: 10px 0;
+              padding-left: 30px;
+            }
+            blockquote {
+              margin: 10px 0;
+              padding-left: 20px;
+              border-left: 3px solid #ccc;
+              font-style: italic;
+            }
+          </style>
+        </head>
+        <body>
+          ${result.value}
+        </body>
+        </html>
+      `
+      
+      // Configure PDF options
+      const opt = {
+        margin: conversionOptions.margin * 0.394, // Convert cm to inches
+        filename: file.name.replace(/\.(docx|doc)$/i, '.pdf'),
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          letterRendering: true
+        },
+        jsPDF: { 
+          unit: 'in', 
+          format: conversionOptions.pageSize.toLowerCase(),
+          orientation: conversionOptions.orientation
+        }
+      }
+
+      // Convert HTML to PDF
+      const html2pdf = (await import('html2pdf.js')).default
+      await html2pdf().set(opt).from(styledHtml).save()
+      
+    } catch (err) {
+      setError('Failed to convert Word document to PDF. Please try again.')
+      console.error('Conversion error:', err)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const resetFile = () => {
+    setFile(null)
+    setPreviewHtml('')
+    setError('')
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <Header />
+      
+      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="p-4 bg-blue-100 dark:bg-blue-900 rounded-full">
+                <FileText className="h-12 w-12 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Word to PDF Converter
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Convert Microsoft Word documents (.docx) to PDF format while preserving formatting, images, and layout.
+            </p>
+          </div>
+
+          {/* Upload Section */}
+          {!file && (
+            <div className="mb-8">
+              <FileUpload 
+                onFilesSelected={handleFileSelected}
+                multiple={false}
+                maxSize={25}
+                accept=".docx"
+              >
+                <div className="space-y-4">
+                  <div className="flex justify-center">
+                    <FileText className="h-12 w-12 text-gray-400" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-medium text-gray-900 dark:text-white">
+                      Choose a Word document or drag and drop
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      .docx files only (max 25MB)
+                    </p>
+                  </div>
+                </div>
+              </FileUpload>
+            </div>
+          )}
+
+          {/* File Info & Settings */}
+          {file && (
+            <div className="space-y-8">
+              {/* File Info */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                      <FileText className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {file.name}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300">
+                        {formatFileSize(file.size)}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={resetFile}
+                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                  >
+                    Change File
+                  </button>
+                </div>
+              </div>
+
+              {/* Conversion Settings */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                  PDF Settings
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {/* Page Size */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Page Size
+                    </label>
+                    <select
+                      value={conversionOptions.pageSize}
+                      onChange={(e) => setConversionOptions(prev => ({ ...prev, pageSize: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md"
+                    >
+                      <option value="A4">A4</option>
+                      <option value="Letter">Letter</option>
+                      <option value="A3">A3</option>
+                      <option value="Legal">Legal</option>
+                    </select>
+                  </div>
+
+                  {/* Orientation */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Orientation
+                    </label>
+                    <select
+                      value={conversionOptions.orientation}
+                      onChange={(e) => setConversionOptions(prev => ({ ...prev, orientation: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md"
+                    >
+                      <option value="portrait">Portrait</option>
+                      <option value="landscape">Landscape</option>
+                    </select>
+                  </div>
+
+                  {/* Margin */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Margin ({conversionOptions.margin}cm)
+                    </label>
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="3"
+                      step="0.5"
+                      value={conversionOptions.margin}
+                      onChange={(e) => setConversionOptions(prev => ({ ...prev, margin: parseFloat(e.target.value) }))}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Include Images */}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="includeImages"
+                      checked={conversionOptions.includeImages}
+                      onChange={(e) => setConversionOptions(prev => ({ ...prev, includeImages: e.target.checked }))}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <label htmlFor="includeImages" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Include Images
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Document Preview */}
+              {previewHtml && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Document Preview
+                  </h3>
+                  <div className="max-h-96 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-white">
+                    <div 
+                      dangerouslySetInnerHTML={{ __html: previewHtml }}
+                      className="prose prose-sm max-w-none"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    This preview shows how your document content will appear in the PDF.
+                  </p>
+                </div>
+              )}
+
+              {/* Warning about limitations */}
+              <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-yellow-900 dark:text-yellow-100">
+                      Conversion Limitations
+                    </h4>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                      Complex formatting, embedded objects, and advanced Word features may not convert perfectly. 
+                      For best results, use simple formatting and standard fonts.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Error */}
+              {error && (
+                <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-red-700 dark:text-red-300">{error}</p>
+                </div>
+              )}
+
+              {/* Convert Button */}
+              <div className="flex justify-center">
+                <button
+                  onClick={convertToPDF}
+                  disabled={isProcessing || !previewHtml}
+                  className="flex items-center space-x-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-lg font-medium"
+                >
+                  <Download className="h-6 w-6" />
+                  <span>
+                    {isProcessing ? 'Converting to PDF...' : 'Convert to PDF'}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Info Section */}
+          <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              How to Convert Word to PDF
+            </h3>
+            <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-300">
+              <li>Upload a .docx file (Word 2007 or later format)</li>
+              <li>Review the document preview to ensure content is correct</li>
+              <li>Configure PDF settings: page size, orientation, and margins</li>
+              <li>Click &quot;Convert to PDF&quot; to process the document</li>
+              <li>Download the resulting PDF file</li>
+            </ol>
+            
+            <div className="mt-6 space-y-4">
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                  ✅ Supported Features
+                </h4>
+                <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                  <li>• Text formatting (bold, italic, underline)</li>
+                  <li>• Headings and paragraphs</li>
+                  <li>• Lists (bulleted and numbered)</li>
+                  <li>• Tables and basic layouts</li>
+                  <li>• Images and pictures</li>
+                </ul>
+              </div>
+              
+              <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+                  🔒 Privacy & Security
+                </h4>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  All document processing happens locally in your browser. Your Word documents are never uploaded to our servers.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  )
+}

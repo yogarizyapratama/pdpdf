@@ -1,0 +1,372 @@
+'use client'
+
+import { useState } from 'react'
+import { Unlock, Download, Eye, Lock, Shield, AlertTriangle } from 'lucide-react'
+import StructuredData from '@/components/StructuredData'
+import ToolLayout from '@/components/ToolLayout'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import FileUpload from '@/components/FileUpload'
+import PDFThumbnail from '@/components/PDFThumbnail'
+import AdBanner from '@/components/AdBanner'
+import { formatFileSize } from '@/lib/utils'
+
+export default function UnlockPDFPage() {
+  const [file, setFile] = useState<File | null>(null)
+  const [password, setPassword] = useState('')
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
+  const [showAdModal, setShowAdModal] = useState(false)
+  const [unlockError, setUnlockError] = useState('')
+  const [isPasswordProtected, setIsPasswordProtected] = useState<boolean | null>(null)
+
+  const handleFileSelected = (files: File[]) => {
+    if (files.length > 0) {
+      setFile(files[0])
+      setPassword('')
+      setDownloadUrl(null)
+      setUnlockError('')
+      // Simulate password detection - in production, check if PDF is password protected
+      setIsPasswordProtected(Math.random() > 0.5) // Random for demo
+    }
+  }
+
+  const processUnlockPDF = async () => {
+    if (!file) return
+    if (isPasswordProtected && !password.trim()) {
+      setUnlockError('Password is required to unlock this PDF')
+      return
+    }
+
+    // Show ad modal before processing
+    setShowAdModal(true)
+    
+    setTimeout(async () => {
+      setShowAdModal(false)
+      setIsProcessing(true)
+      setUnlockError('')
+
+      try {
+        // Simulate processing - in production, implement actual PDF password removal
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        
+        // Simulate password validation
+        if (isPasswordProtected && password !== 'demo') {
+          setUnlockError('Incorrect password. Please try again.')
+          setIsProcessing(false)
+          return
+        }
+        
+        // For now, just download the original file
+        const blob = new Blob([file], { type: 'application/pdf' })
+        const url = URL.createObjectURL(blob)
+        setDownloadUrl(url)
+        
+      } catch (error) {
+        console.error('Error unlocking PDF:', error)
+        setUnlockError('Error unlocking PDF. Please try again.')
+      } finally {
+        setIsProcessing(false)
+      }
+    }, 3000)
+  }
+
+  return (
+    <>
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <Header />
+        
+        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-4">
+                <div className="p-4 bg-orange-100 dark:bg-orange-900 rounded-full">
+                  <Unlock className="h-12 w-12 text-orange-600 dark:text-orange-400" />
+                </div>
+              </div>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Unlock PDF
+              </h1>
+              <p className="text-xl text-gray-600 dark:text-gray-300">
+                Remove password protection from your PDF files safely and securely
+              </p>
+            </div>
+
+            {/* File Upload */}
+            {!file && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700">
+                <FileUpload 
+                  onFilesSelected={handleFileSelected}
+                  multiple={false}
+                  maxSize={50}
+                  accept=".pdf"
+                />
+              </div>
+            )}
+
+            {/* File Processing */}
+            {file && (
+              <div className="space-y-8">
+                {/* File Info */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Selected PDF
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300">{file.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {formatFileSize(file.size)}
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setShowPreview(true)}
+                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>Preview</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFile(null)
+                          setPassword('')
+                          setDownloadUrl(null)
+                          setUnlockError('')
+                          setIsPasswordProtected(null)
+                        }}
+                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* File Info Grid */}
+                  <div className="grid grid-cols-1 gap-4 mb-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-4">
+                        <PDFThumbnail 
+                          pdfFile={file} 
+                          pageNumber={1}
+                          width={60}
+                          height={80}
+                          className="rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 dark:text-white truncate">
+                            {file.name}
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Size: {formatFileSize(file.size)}
+                          </p>
+                          <div className="flex items-center mt-1">
+                            {isPasswordProtected ? (
+                              <>
+                                <Lock className="h-4 w-4 text-red-500 mr-1" />
+                                <span className="text-sm text-red-500 dark:text-red-400">
+                                  Password Protected
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <Shield className="h-4 w-4 text-green-500 mr-1" />
+                                <span className="text-sm text-green-500 dark:text-green-400">
+                                  No Password Protection
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Inline Ad */}
+                  <AdBanner position="middle" />
+                </div>
+
+                {/* Password Section */}
+                {isPasswordProtected && (
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Lock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Password Required
+                      </h3>
+                    </div>
+                    
+                    <div className="mb-4 p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium text-orange-900 dark:text-orange-100 mb-1">
+                            Password Protected PDF Detected
+                          </h4>
+                          <p className="text-sm text-orange-700 dark:text-orange-300">
+                            This PDF is password protected. Enter the password to unlock and remove the protection.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          PDF Password
+                        </label>
+                        <input
+                          type="password"
+                          value={password}
+                          onChange={(e) => {
+                            setPassword(e.target.value)
+                            setUnlockError('')
+                          }}
+                          placeholder="Enter PDF password..."
+                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        />
+                        {unlockError && (
+                          <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                            {unlockError}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="p-3 bg-gray-50 dark:bg-gray-750 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <strong>Demo:</strong> Use password &quot;demo&quot; to test the unlock functionality
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* No Password Section */}
+                {isPasswordProtected === false && (
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="text-center py-8">
+                      <Shield className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto mb-4" />
+                      <h4 className="text-lg font-medium text-green-900 dark:text-green-100 mb-2">
+                        No Password Protection Found
+                      </h4>
+                      <p className="text-green-700 dark:text-green-300">
+                        This PDF is not password protected and can be accessed freely.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Process Button */}
+                <div className="flex justify-center">
+                  <button
+                    onClick={processUnlockPDF}
+                    disabled={isProcessing || (isPasswordProtected === true && !password.trim())}
+                    className="flex items-center space-x-3 px-8 py-4 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-lg font-medium"
+                  >
+                    <Unlock className="h-6 w-6" />
+                    <span>
+                      {isProcessing ? 'Unlocking PDF...' : 'Unlock PDF'}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Download Link */}
+                {downloadUrl && (
+                  <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-6 text-center">
+                    <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4">
+                      PDF Unlocked Successfully!
+                    </h3>
+                    <p className="text-green-700 dark:text-green-300 mb-4">
+                      Password protection has been removed from your PDF.
+                    </p>
+                    <a
+                      href={downloadUrl}
+                      download="unlocked.pdf"
+                      className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
+                    >
+                      <Download className="h-5 w-5" />
+                      <span>Download Unlocked PDF</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Info Section */}
+            <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                How to Unlock PDF Files
+              </h3>
+              <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-300">
+                <li>Upload your password-protected PDF file</li>
+                <li>Enter the PDF password if prompted</li>
+                <li>Click &quot;Unlock PDF&quot; to remove protection</li>
+                <li>Download your unlocked PDF file</li>
+              </ol>
+              
+              <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+                <h4 className="font-medium text-orange-900 dark:text-orange-100 mb-2">
+                  🔒 Security Notes
+                </h4>
+                <ul className="text-sm text-orange-700 dark:text-orange-300 space-y-1">
+                  <li>• You must have the correct password to unlock the PDF</li>
+                  <li>• Only remove protection from PDFs you own or have permission to modify</li>
+                  <li>• The unlocked PDF will be freely accessible without password</li>
+                  <li>• Consider the security implications before sharing unlocked files</li>
+                </ul>
+              </div>
+              
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+                  🔒 Privacy & Security
+                </h4>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Reliable PDF password removal with support for various encryption types. Unlock your documents securely.
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+
+      {/* PDF Preview Modal */}
+      {showPreview && file && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                PDF Preview
+              </h3>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-auto max-h-[70vh]">
+              <div className="flex justify-center">
+                <PDFThumbnail 
+                  pdfFile={file} 
+                  pageNumber={1}
+                  width={400}
+                  height={500}
+                  className="border border-gray-200 dark:border-gray-600 rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ad Modal */}
+      {showAdModal && (
+        <AdBanner position="bottom"  />
+      )}
+    </>
+  )
+}

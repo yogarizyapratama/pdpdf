@@ -1,0 +1,515 @@
+'use client'
+
+// Force dynamic rendering to avoid SSR issues with PDF.js and Tesseract.js
+export const dynamic = 'force-dynamic'
+
+import { useState, useCallback } from 'react'
+import { Search, Eye, Loader } from 'lucide-react'
+import StructuredData from '@/components/StructuredData'
+import ToolLayout from '@/components/ToolLayout'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import FileUpload from '@/components/FileUpload'
+import { downloadBlob, formatFileSize } from '@/lib/utils'
+
+// Dynamically import PDF.js and Tesseract.js to avoid SSR issues
+const dynamicImports = {
+  pdfjsLib: () => import('pdfjs-dist'),
+  tesseract: () => import('tesseract.js'),
+  pdfLib: () => import('pdf-lib')
+}
+
+// Set up PDF.js worker only on client side
+if (typeof window !== 'undefined') {
+  import('pdfjs-dist').then((pdfjsLib) => {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+  })
+}
+
+interface OCRPage {
+  pageNumber: number
+  canvas: HTMLCanvasElement
+  text: string
+  confidence: number
+  status: 'pending' | 'processing' | 'completed' | 'error'
+}
+
+export default function OCRPDFPage() {
+  const [file, setFile] = useState<File | null>(null)
+  const [pages, setPages] = useState<OCRPage[]>([])
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false)
+  const [error, setError] = useState<string>('')
+  const [ocrLanguage, setOCRLanguage] = useState<string>('eng')
+  const [outputFormat, setOutputFormat] = useState<'searchable-pdf' | 'text-file'>('searchable-pdf')
+  const [currentProcessingPage, setCurrentProcessingPage] = useState<number>(0)
+
+  const languages = [
+    { code: 'eng', name: 'English' },
+    { code: 'spa', name: 'Spanish' },
+    { code: 'fra', name: 'French' },
+    { code: 'deu', name: 'German' },
+    { code: 'ita', name: 'Italian' },
+    { code: 'por', name: 'Portuguese' },
+    { code: 'rus', name: 'Russian' },
+    { code: 'chi_sim', name: 'Chinese (Simplified)' },
+    { code: 'jpn', name: 'Japanese' },
+    { code: 'kor', name: 'Korean' },
+    { code: 'ara', name: 'Arabic' },
+    { code: 'hin', name: 'Hindi' }
+  ]
+
+  const handleFileSelected = useCallback(async (files: File[]) => {
+    if (files.length === 0) return
+    
+    const selectedFile = files[0]
+    setFile(selectedFile)
+    setError('')
+    setIsLoadingPreview(true)
+    setPages([])
+    
+    try {
+      const pdfjsLib = await dynamicImports.pdfjsLib()
+      const arrayBuffer = await selectedFile.arrayBuffer()
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      const numPages = pdf.numPages
+      
+      const pagesData: OCRPage[] = []
+      
+      // Generate preview for each page
+      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum)
+        const viewport = page.getViewport({ scale: 1.5 }) // Higher scale for better OCR
+        
+        const canvas = document.createElement('canvas')
+        const context = canvas.getContext('2d')!
+        canvas.height = viewport.height
+        canvas.width = viewport.width
+        
+        // Set white background for better OCR
+        context.fillStyle = '#FFFFFF'
+        context.fillRect(0, 0, canvas.width, canvas.height)
+        
+        await page.render({
+          canvasContext: context,
+          viewport: viewport
+        }).promise
+        
+        pagesData.push({
+          pageNumber: pageNum,
+          canvas,
+          text: '',
+          confidence: 0,
+          status: 'pending'
+        })
+      }
+      
+      setPages(pagesData)
+    } catch (err) {
+      setError('Failed to load PDF file. Please ensure it\'s a valid PDF document.')
+      console.error('PDF loading error:', err)
+    } finally {
+      setIsLoadingPreview(false)
+    }
+  }, [])
+
+  const performOCR = async () => {
+    if (!file) {
+      setError('Please select a PDF file');
+      return;
+    }
+
+    setIsProcessing(true);
+    setError('');
+    setCurrentProcessingPage(0);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('language', ocrLanguage);
+
+      const response = await fetch('/api/ocr-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('OCR failed');
+      }
+
+      const { text } = await response.json();
+
+      // Output format: text file or PDF
+      if (outputFormat === 'searchable-pdf') {
+        // For now, just download the text as PDF (can be improved)
+        const blob = new Blob([text], { type: 'application/pdf' });
+        downloadBlob(blob, file.name.replace('.pdf', '_ocr.pdf'));
+      } else {
+        const blob = new Blob([text], { type: 'text/plain' });
+        downloadBlob(blob, file.name.replace('.pdf', '_ocr.txt'));
+      }
+    } catch (err) {
+      setError('Failed to perform OCR. Please try again.');
+      console.error('OCR error:', err);
+    } finally {
+      setIsProcessing(false);
+      setCurrentProcessingPage(0);
+    }
+  }
+
+  const createSearchablePDF = async (ocrPages: OCRPage[]) => {
+    try {
+      const { PDFDocument, rgb, StandardFonts } = await dynamicImports.pdfLib()
+      const pdfDoc = await PDFDocument.create()
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
+      
+      for (const ocrPage of ocrPages) {
+        const page = pdfDoc.addPage()
+        const { width, height } = page.getSize()
+        
+        // Add the original image as background
+        const imageBytes = dataURLToArrayBuffer(ocrPage.canvas.toDataURL('image/png'))
+        const image = await pdfDoc.embedPng(imageBytes)
+        
+        // Scale image to fit page
+        const imageScale = Math.min(width / ocrPage.canvas.width, height / ocrPage.canvas.height)
+        page.drawImage(image, {
+          x: 0,
+          y: 0,
+          width: ocrPage.canvas.width * imageScale,
+          height: ocrPage.canvas.height * imageScale
+        })
+        
+        // Add invisible text for searchability (if OCR was successful)
+        if (ocrPage.text && ocrPage.status === 'completed') {
+          page.drawText(ocrPage.text, {
+            x: 0,
+            y: height,
+            size: 1,
+            font: helveticaFont,
+            color: rgb(1, 1, 1), // White text (invisible)
+            opacity: 0
+          })
+        }
+      }
+      
+      const pdfBytes = await pdfDoc.save()
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+      downloadBlob(blob, file!.name.replace('.pdf', '_searchable.pdf'))
+      
+    } catch (err) {
+      console.error('Error creating searchable PDF:', err)
+      setError('Failed to create searchable PDF. Creating text file instead.')
+      createTextFile(ocrPages)
+    }
+  }
+
+  const createTextFile = (ocrPages: OCRPage[]) => {
+    const allText = ocrPages
+      .map(page => {
+        if (page.status === 'completed' && page.text) {
+          return `--- Page ${page.pageNumber} (Confidence: ${page.confidence}%) ---\n${page.text}\n\n`
+        }
+        return `--- Page ${page.pageNumber} ---\n[OCR failed or no text detected]\n\n`
+      })
+      .join('')
+    
+    const blob = new Blob([allText], { type: 'text/plain' })
+    downloadBlob(blob, file!.name.replace('.pdf', '_ocr_text.txt'))
+  }
+
+  const dataURLToArrayBuffer = (dataURL: string): Uint8Array => {
+    const base64 = dataURL.split(',')[1]
+    const binaryString = atob(base64)
+    const bytes = new Uint8Array(binaryString.length)
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i)
+    }
+    return bytes
+  }
+
+  const resetFile = () => {
+    setFile(null)
+    setPages([])
+    setError('')
+    setCurrentProcessingPage(0)
+  }
+
+  const completedPages = pages.filter(page => page.status === 'completed').length
+  const averageConfidence = completedPages > 0 
+    ? Math.round(pages.filter(page => page.status === 'completed').reduce((sum, page) => sum + page.confidence, 0) / completedPages)
+    : 0
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <Header />
+      
+      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="p-4 bg-purple-100 dark:bg-purple-900 rounded-full">
+                <Search className="h-12 w-12 text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              OCR PDF - Extract Text
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Extract text from scanned PDF documents using advanced OCR technology. Convert images to searchable text.
+            </p>
+          </div>
+
+          {/* Upload Section */}
+          {!file && (
+            <div className="mb-8">
+              <FileUpload 
+                onFilesSelected={handleFileSelected}
+                multiple={false}
+                maxSize={50}
+                accept=".pdf"
+              />
+            </div>
+          )}
+
+          {/* File Info & Settings */}
+          {file && (
+            <div className="space-y-8">
+              {/* File Info */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {file.name}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300">
+                      {formatFileSize(file.size)} • {pages.length} pages
+                    </p>
+                  </div>
+                  <button
+                    onClick={resetFile}
+                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                  >
+                    Change File
+                  </button>
+                </div>
+              </div>
+
+              {/* OCR Settings */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                  OCR Settings
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Language */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      OCR Language
+                    </label>
+                    <select
+                      value={ocrLanguage}
+                      onChange={(e) => setOCRLanguage(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md"
+                    >
+                      {languages.map(lang => (
+                        <option key={lang.code} value={lang.code}>
+                          {lang.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Output Format */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Output Format
+                    </label>
+                    <select
+                      value={outputFormat}
+                      onChange={(e) => setOutputFormat(e.target.value as 'searchable-pdf' | 'text-file')}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md"
+                    >
+                      <option value="searchable-pdf">Searchable PDF</option>
+                      <option value="text-file">Text File (.txt)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Processing Status */}
+              {isProcessing && (
+                <div className="bg-purple-50 dark:bg-purple-950/20 rounded-lg p-6">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <Loader className="h-6 w-6 animate-spin text-purple-600" />
+                    <div>
+                      <h4 className="font-semibold text-purple-900 dark:text-purple-100">
+                        Processing OCR...
+                      </h4>
+                      <p className="text-purple-700 dark:text-purple-300">
+                        Page {currentProcessingPage} of {pages.length}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="w-full bg-purple-200 dark:bg-purple-800 rounded-full h-2">
+                    <div
+                      className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(currentProcessingPage / pages.length) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Results Summary */}
+              {completedPages > 0 && !isProcessing && (
+                <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-6">
+                  <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">
+                    OCR Results
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-green-700 dark:text-green-300">Pages Processed: </span>
+                      <span className="font-medium">{completedPages}/{pages.length}</span>
+                    </div>
+                    <div>
+                      <span className="text-green-700 dark:text-green-300">Average Confidence: </span>
+                      <span className="font-medium">{averageConfidence}%</span>
+                    </div>
+                    <div>
+                      <span className="text-green-700 dark:text-green-300">Status: </span>
+                      <span className="font-medium">Ready to Download</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Page Preview */}
+              {pages.length > 0 && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <Eye className="h-5 w-5 mr-2" />
+                    Page Preview
+                  </h3>
+
+                  {isLoadingPreview ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">Loading preview...</span>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {pages.slice(0, 6).map((page) => (
+                        <div key={page.pageNumber} className="space-y-3">
+                          <div className="relative border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
+                            <img
+                              src={page.canvas.toDataURL()}
+                              alt={`Page ${page.pageNumber}`}
+                              className="w-full h-auto"
+                            />
+                            <div className="absolute top-2 right-2 flex space-x-1">
+                              <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded">
+                                {page.pageNumber}
+                              </span>
+                              {page.status === 'completed' && (
+                                <span className="px-2 py-1 bg-green-600 text-white text-xs rounded">
+                                  {page.confidence}%
+                                </span>
+                              )}
+                              {page.status === 'processing' && (
+                                <span className="px-2 py-1 bg-yellow-600 text-white text-xs rounded">
+                                  Processing...
+                                </span>
+                              )}
+                              {page.status === 'error' && (
+                                <span className="px-2 py-1 bg-red-600 text-white text-xs rounded">
+                                  Error
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {page.text && page.status === 'completed' && (
+                            <div className="max-h-20 overflow-y-auto text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                              {page.text.substring(0, 150)}...
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Error */}
+              {error && (
+                <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-red-700 dark:text-red-300">{error}</p>
+                </div>
+              )}
+
+              {/* Process Button */}
+              <div className="flex justify-center">
+                <button
+                  onClick={performOCR}
+                  disabled={isProcessing || pages.length === 0}
+                  className="flex items-center space-x-3 px-8 py-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-lg font-medium"
+                >
+                  <Search className="h-6 w-6" />
+                  <span>
+                    {isProcessing ? 'Processing OCR...' : 'Start OCR Processing'}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Info Section */}
+          <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              About OCR Processing
+            </h3>
+            <div className="space-y-4 text-gray-600 dark:text-gray-300">
+              <p>
+                Optical Character Recognition (OCR) technology extracts text from scanned documents and images. 
+                Our tool uses advanced machine learning to provide accurate text recognition.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Best Results:</h4>
+                  <ul className="text-sm space-y-1">
+                    <li>• High-resolution, clear scanned documents</li>
+                    <li>• Standard fonts and readable text</li>
+                    <li>• Good contrast between text and background</li>
+                    <li>• Properly oriented pages</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Output Options:</h4>
+                  <ul className="text-sm space-y-1">
+                    <li>• <strong>Searchable PDF:</strong> Original images with invisible text layer</li>
+                    <li>• <strong>Text File:</strong> Plain text extracted from all pages</li>
+                    <li>• Confidence scores for accuracy assessment</li>
+                    <li>• Multiple language support</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+              <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+                🔒 Privacy & Security
+              </h4>
+              <p className="text-sm text-green-700 dark:text-green-300">
+                All OCR processing happens locally in your browser using WebAssembly. Your documents never leave your device.
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  )
+}

@@ -1,0 +1,275 @@
+'use client';
+export const dynamic = 'force-dynamic';
+
+import { useState } from 'react';
+import { PDFDocument } from 'pdf-lib';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import PDFThumbnail from '@/components/PDFThumbnail';
+import PDFThumbnailsGrid from '@/components/PDFThumbnailsGrid';
+import AdBanner from '@/components/AdBanner';
+import { formatFileSize } from '@/lib/utils';
+import FileUpload from '@/components/FileUpload';
+import { Scissors, Download } from 'lucide-react';
+
+export default function CropPDF() {
+  const [file, setFile] = useState<File | null>(null);
+  const [cropOptions, setCropOptions] = useState({
+    left: 0,
+    top: 0,
+    width: 200,
+    height: 200
+  });
+  const [loading, setLoading] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const handleFileSelected = async (files: File[]) => {
+    if (files.length > 0) {
+      const selectedFile = files[0];
+      setFile(selectedFile);
+      setDownloadUrl(null);
+      
+      // Count total pages for thumbnail display
+      try {
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(arrayBuffer);
+        const pageCount = pdfDoc.getPageCount();
+        setTotalPages(pageCount);
+      } catch (error) {
+        console.error('Error counting PDF pages:', error);
+        setTotalPages(0);
+      }
+    }
+  };
+
+  const handleCrop = async () => {
+    if (!file) return;
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('left', cropOptions.left.toString());
+    formData.append('top', cropOptions.top.toString());
+    formData.append('width', cropOptions.width.toString());
+    formData.append('height', cropOptions.height.toString());
+
+    try {
+      const response = await fetch('/api/crop-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        setDownloadUrl(url);
+      } else {
+        const error = await response.json();
+        alert('Error: ' + error.error);
+      }
+    } catch (error) {
+      alert('Error cropping PDF: ' + error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <Header />
+      
+      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="p-4 bg-orange-100 dark:bg-orange-900 rounded-full">
+                <Scissors className="h-12 w-12 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Crop PDF Pages
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Crop and resize specific areas of your PDF pages
+            </p>
+          </div>
+
+          {/* Upload Section */}
+          {!file && (
+            <div className="mb-8">
+              <FileUpload 
+                onFilesSelected={handleFileSelected}
+                multiple={false}
+                maxSize={100}
+                accept=".pdf"
+              />
+            </div>
+          )}
+
+          {/* File Info & Options */}
+          {file && (
+            <div className="space-y-8">
+              {/* File Info */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {file.name}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300">
+                      {formatFileSize(file.size)} • {totalPages} pages
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setShowPreview(true)}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                      Preview
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFile(null)
+                        setTotalPages(0)
+                        setDownloadUrl(null)
+                      }}
+                      className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+
+                {/* PDF Thumbnails Grid */}
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    PDF Pages Preview
+                  </h3>
+                  {totalPages > 0 && (
+                    <PDFThumbnailsGrid pdfFile={file} totalPages={totalPages} />
+                  )}
+                </div>
+
+                {/* Inline Ad */}
+                <AdBanner position="middle" />
+              </div>
+
+              {/* Crop Options */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Crop Settings
+                </h3>
+                
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Left Position
+                    </label>
+                    <input
+                      type="number"
+                      value={cropOptions.left}
+                      onChange={(e) => setCropOptions({...cropOptions, left: parseInt(e.target.value) || 0})}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Top Position
+                    </label>
+                    <input
+                      type="number"
+                      value={cropOptions.top}
+                      onChange={(e) => setCropOptions({...cropOptions, top: parseInt(e.target.value) || 0})}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Width
+                    </label>
+                    <input
+                      type="number"
+                      value={cropOptions.width}
+                      onChange={(e) => setCropOptions({...cropOptions, width: parseInt(e.target.value) || 200})}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Height
+                    </label>
+                    <input
+                      type="number"
+                      value={cropOptions.height}
+                      onChange={(e) => setCropOptions({...cropOptions, height: parseInt(e.target.value) || 200})}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                </div>
+                
+                <button
+                  onClick={handleCrop}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center space-x-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg transition-colors"
+                >
+                  <Scissors className="h-5 w-5" />
+                  <span>{loading ? 'Cropping PDF...' : 'Crop PDF'}</span>
+                </button>
+              </div>
+
+              {/* Download Result */}
+              {downloadUrl && (
+                <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-6 text-center">
+                  <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4">
+                    PDF Cropped Successfully!
+                  </h3>
+                  <a
+                    href={downloadUrl}
+                    download="cropped.pdf"
+                    className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
+                  >
+                    <Download className="h-5 w-5" />
+                    <span>Download Cropped PDF</span>
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Preview Modal */}
+      {showPreview && file && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">PDF Preview</h3>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-auto max-h-[70vh]">
+              <div className="flex justify-center">
+                <PDFThumbnail 
+                  pdfFile={file} 
+                  pageNumber={1}
+                  width={400}
+                  height={500}
+                  className="border border-gray-200 dark:border-gray-600 rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Footer />
+    </div>
+  );
+}

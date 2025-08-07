@@ -1,0 +1,414 @@
+'use client'
+
+import { useState } from 'react'
+import { PDFDocument } from 'pdf-lib'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import PDFThumbnail from '@/components/PDFThumbnail'
+import { Camera, Eye, Settings, Download } from 'lucide-react'
+import FileUpload from "@/components/FileUpload"
+import PDFThumbnailsGrid from '@/components/PDFThumbnailsGrid'
+import AdBanner from '@/components/AdBanner'
+import { formatFileSize } from '@/lib/utils'
+
+export default function ScanToPDFPage() {
+  const [images, setImages] = useState<File[]>([])
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
+  const [showAdModal, setShowAdModal] = useState(false)
+  const [scanQuality, setScanQuality] = useState<'low' | 'medium' | 'high'>('medium')
+  const [colorMode, setColorMode] = useState<'color' | 'grayscale' | 'bw'>('color')
+  const [generatedPdf, setGeneratedPdf] = useState<File | null>(null)
+  const [totalPages, setTotalPages] = useState<number>(0)
+
+  const handleImagesSelected = (files: File[]) => {
+    setImages(files)
+    setDownloadUrl(null)
+  }
+
+  const removeImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index))
+  }
+
+  const processScanToPDF = async () => {
+    if (images.length === 0) return
+
+    // Show ad modal before processing
+    setShowAdModal(true)
+    
+    setTimeout(async () => {
+      setShowAdModal(false)
+      setIsProcessing(true)
+
+      try {
+        // Import pdf-lib dynamically
+        const { PDFDocument } = await import('pdf-lib')
+        
+        // Create a new PDF document
+        const pdfDoc = await PDFDocument.create()
+        
+        // Process each image
+        for (let i = 0; i < images.length; i++) {
+          const image = images[i]
+          
+          // Convert image to array buffer
+          const imageArrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result as ArrayBuffer)
+            reader.onerror = reject
+            reader.readAsArrayBuffer(image)
+          })
+          
+          let embeddedImage
+          
+          // Embed image based on type
+          if (image.type.includes('png')) {
+            embeddedImage = await pdfDoc.embedPng(imageArrayBuffer)
+          } else if (image.type.includes('jpg') || image.type.includes('jpeg')) {
+            embeddedImage = await pdfDoc.embedJpg(imageArrayBuffer)
+          } else {
+            throw new Error(`Unsupported image type: ${image.type}`)
+          }
+          
+          // Add a new page with the image
+          const page = pdfDoc.addPage()
+          const { width, height } = page.getSize()
+          
+          // Calculate image scaling to fit page
+          const imageAspectRatio = embeddedImage.width / embeddedImage.height
+          const pageAspectRatio = width / height
+          
+          let imageWidth, imageHeight
+          if (imageAspectRatio > pageAspectRatio) {
+            // Image is wider relative to page
+            imageWidth = width - 40 // 20px margin on each side
+            imageHeight = imageWidth / imageAspectRatio
+          } else {
+            // Image is taller relative to page
+            imageHeight = height - 40 // 20px margin on top and bottom
+            imageWidth = imageHeight * imageAspectRatio
+          }
+          
+          // Center the image on page
+          const x = (width - imageWidth) / 2
+          const y = (height - imageHeight) / 2
+          
+          // Draw the image
+          page.drawImage(embeddedImage, {
+            x,
+            y,
+            width: imageWidth,
+            height: imageHeight,
+          })
+        }
+        
+        // Generate PDF bytes
+        const pdfBytes = await pdfDoc.save()
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+        const url = URL.createObjectURL(blob)
+        setDownloadUrl(url)
+        
+        // Convert blob to File for thumbnail display
+        const pdfFile = new File([blob], 'scanned-document.pdf', { type: 'application/pdf' })
+        setGeneratedPdf(pdfFile)
+        setTotalPages(images.length) // Each image becomes a page
+        
+      } catch (error) {
+        console.error('Error creating PDF from scans:', error)
+        alert('Error creating PDF. Please ensure all files are valid images and try again.')
+      } finally {
+        setIsProcessing(false)
+      }
+    }, 3000)
+  }
+
+  return (
+    <>
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <Header />
+        
+        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-4">
+                <div className="p-4 bg-green-100 dark:bg-green-900 rounded-full">
+                  <Camera className="h-12 w-12 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Scan to PDF
+              </h1>
+              <p className="text-xl text-gray-600 dark:text-gray-300">
+                Convert your scanned images or photos into a professional PDF document
+              </p>
+            </div>
+
+            {/* File Upload */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Upload Scanned Images
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Select JPG, PNG, or other image files of your scanned documents
+                </p>
+              </div>
+              <FileUpload 
+                onFilesSelected={handleImagesSelected}
+                multiple={true}
+                maxSize={20}
+                accept="image/*"
+              />
+            </div>
+
+            {/* Scanning Settings */}
+            {images.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Settings className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Scan Settings
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Quality Settings */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Scan Quality
+                    </label>
+                    <div className="space-y-2">
+                      {[
+                        { value: 'low', label: 'Low (Faster, Smaller file)' },
+                        { value: 'medium', label: 'Medium (Balanced)' },
+                        { value: 'high', label: 'High (Best quality)' }
+                      ].map((option) => (
+                        <label key={option.value} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="quality"
+                            value={option.value}
+                            checked={scanQuality === option.value}
+                            onChange={(e) => setScanQuality(e.target.value as 'low' | 'medium' | 'high')}
+                            className="mr-3 text-green-600"
+                          />
+                          <span className="text-gray-700 dark:text-gray-300">
+                            {option.label}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Color Mode */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Color Mode
+                    </label>
+                    <div className="space-y-2">
+                      {[
+                        { value: 'color', label: 'Color (Full color scan)' },
+                        { value: 'grayscale', label: 'Grayscale (Black & white tones)' },
+                        { value: 'bw', label: 'Black & White (Text documents)' }
+                      ].map((option) => (
+                        <label key={option.value} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="colorMode"
+                            value={option.value}
+                            checked={colorMode === option.value}
+                            onChange={(e) => setColorMode(e.target.value as 'color' | 'grayscale' | 'bw')}
+                            className="mr-3 text-green-600"
+                          />
+                          <span className="text-gray-700 dark:text-gray-300">
+                            {option.label}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Inline Ad */}
+                <div className="mt-6">
+                  <AdBanner position="middle" />
+                </div>
+              </div>
+            )}
+
+            {/* Images Preview */}
+            {images.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Scanned Images ({images.length})
+                  </h3>
+                  <button
+                    onClick={() => setShowPreview(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>Preview All</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {images.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <div className="aspect-[3/4] bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                        <img
+                          src={URL.createObjectURL(image)}
+                          alt={`Scan ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <button
+                        onClick={() => removeImage(index)}
+                        className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        ×
+                      </button>
+                      <div className="absolute bottom-2 left-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                        {index + 1}
+                      </div>
+                      <div className="mt-2 text-center">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                          {image.name}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-500">
+                          {formatFileSize(image.size)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Process Button */}
+            {images.length > 0 && (
+              <div className="flex justify-center mb-8">
+                <button
+                  onClick={processScanToPDF}
+                  disabled={isProcessing}
+                  className="flex items-center space-x-3 px-8 py-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-lg font-medium"
+                >
+                  <Camera className="h-6 w-6" />
+                  <span>
+                    {isProcessing ? 'Creating PDF...' : 'Create PDF from Scans'}
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {/* Download Link */}
+            {downloadUrl && (
+              <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-6 text-center mb-8">
+                <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4">
+                  PDF Created Successfully!
+                </h3>
+                <a
+                  href={downloadUrl}
+                  download="scanned-document.pdf"
+                  className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
+                >
+                  <Download className="h-5 w-5" />
+                  <span>Download Scanned PDF</span>
+                </a>
+                
+                {/* Generated PDF Thumbnails Grid */}
+                {generatedPdf && totalPages > 0 && (
+                  <div className="mt-6">
+                    <h4 className="text-sm font-medium text-green-900 dark:text-green-100 mb-4">
+                      Generated PDF Preview ({totalPages} pages)
+                    </h4>
+                    <PDFThumbnailsGrid pdfFile={generatedPdf} totalPages={totalPages} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Info Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                How to Create PDF from Scans
+              </h3>
+              <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-300">
+                <li>Upload your scanned images (JPG, PNG, etc.)</li>
+                <li>Arrange the images in the correct order</li>
+                <li>Choose quality and color mode settings</li>
+                <li>Click &quot;Create PDF from Scans&quot; to process</li>
+                <li>Download your professional PDF document</li>
+              </ol>
+              
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+                  📱 Scanning Tips
+                </h4>
+                <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                  <li>• Use good lighting when scanning/photographing documents</li>
+                  <li>• Keep documents flat and avoid shadows</li>
+                  <li>• For text documents, use Black & White mode for smaller files</li>
+                  <li>• Higher quality settings create larger but clearer PDFs</li>
+                </ul>
+              </div>
+              
+              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                  🔒 Privacy & Security
+                </h4>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  All image processing happens locally in your browser. Your scanned documents are never uploaded to our servers.
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+
+      {/* Images Preview Modal */}
+      {showPreview && images.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Scanned Images Preview
+              </h3>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-auto max-h-[70vh]">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {images.map((image, index) => (
+                  <div key={index} className="text-center">
+                    <img
+                      src={URL.createObjectURL(image)}
+                      alt={`Scan ${index + 1}`}
+                      className="w-full h-48 object-cover rounded border border-gray-200 dark:border-gray-600"
+                    />
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                      Page {index + 1}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ad Modal */}
+      {showAdModal && (
+        <AdBanner position="bottom"  />
+      )}
+    </>
+  )
+}
