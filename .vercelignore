@@ -1,0 +1,49 @@
+# Vercel ignore file for PDPDF
+# Ignore files that are not needed for deployment
+
+# Development files
+.env.local
+.env.development
+.env.test
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+.next/
+out/
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Documentation (keep essential ones)
+docs/
+DEVELOPMENT.md
+LOCAL_SETUP.md
+
+# Scripts (keep deployment scripts)
+!deploy-vercel.sh
+!*.json
+!*.md
+
+# Large files that might cause issues
+*.pdf
+test-*.pdf
+sample-*.pdf
