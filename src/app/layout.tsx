@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "../styles/react-pdf.css";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-import "react-pdf/dist/esm/Page/TextLayer.css";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
 import "@/lib/pdf-config"; // Initialize PDF.js worker globally
 import GoogleAdSenseScript from "../components/GoogleAdSenseScript";
 import AdSenseManager from "../components/AdSenseManager";
