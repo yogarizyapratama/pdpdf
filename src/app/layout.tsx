@@ -104,7 +104,7 @@ export default function RootLayout({
         <meta name="google-adsense-account" content="ca-pub-6879569899763830" />
         
         {/* Search Engine Verification */}
-        <meta name="google-site-verification" content="hPWwTppUDGJ2NK4nBWj9e489I7L6x_EWDjYuEz4v57o" />
+        <meta name="google-site-verification" content="yCHigiSMaLiLcxLC0Y_hPj8RK5lK8_Ur6Nw07Biu6dA" />
         <meta name="msvalidate.01" content="YOUR_BING_VERIFICATION_CODE" />
         
         {/* Enhanced SEO Meta Tags */}
