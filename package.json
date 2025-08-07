@@ -10,7 +10,11 @@
     "start": "next start",
     "lint": "next lint",
     "build:prod": "ESLINT_CONFIG_FILE=.eslintrc.production.json next build",
-    "build:deploy": "ESLINT_CONFIG_FILE=.eslintrc.deploy.json next build"
+    "build:deploy": "ESLINT_CONFIG_FILE=.eslintrc.deploy.json next build",
+    "deploy:vercel": "./deploy-vercel.sh",
+    "deploy:check": "npm run build && npm run lint",
+    "vercel:build": "NEXT_PUBLIC_APP_URL=https://pdpdf.vercel.app npm run build",
+    "postbuild": "echo '✅ Build completed for PDPDF - Ready for Vercel deployment!'"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

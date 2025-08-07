@@ -1,9 +1,9 @@
-# ads.txt file for PDF All-in-One
+# ads.txt file for PDPDF - PDF All-in-One Tools
 # This file is used by advertisers to verify authorized sellers
-# Replace the example publisher ID with your actual Google AdSense publisher ID
+# Domain: pdpdf.vercel.app
 
-# Google AdSense - Replace with your actual publisher ID
-# google.com, pub-XXXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+# Google AdSense - Production Configuration
+google.com, pub-6879569899763830, DIRECT, f08c47fec0942fa0
 
 # Example format for other ad networks (uncomment and modify as needed):
 # Format: domain, publisher_id, relationship_type, tag_id

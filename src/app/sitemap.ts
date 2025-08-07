@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://pdf-all-in-one.com'
+  const baseUrl = 'https://pdpdf.vercel.app'
   
   // Define all PDF tools with their SEO priorities
   const pdfTools = [

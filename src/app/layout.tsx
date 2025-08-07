@@ -19,8 +19,12 @@ import StructuredData from '@/components/StructuredData';
 // import GoogleAnalytics from '@/components/GoogleAnalytics';
 // import FloatingToolPanel from '@/components/FloatingToolPanel';
 
+// Get base URL for metadata
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pdpdf.vercel.app'
+
 export const metadata: Metadata = {
-  title: "PDF All-in-One - Free Online PDF Tools | Merge, Split, Compress, Convert PDF",
+  metadataBase: new URL(baseUrl),
+  title: "PDPDF - Free Online PDF Tools | Merge, Split, Compress, Convert PDF",
   description: "Free online PDF tools: merge PDF files, split PDF, compress PDF, convert PDF to Word/Excel/JPG, edit PDF, protect PDF. No signup required. Fast, secure, unlimited use.",
   keywords: [
     "PDF tools", "merge PDF online", "split PDF", "compress PDF", "convert PDF", 
@@ -29,39 +33,48 @@ export const metadata: Metadata = {
     "PDF merger", "PDF splitter", "PDF compressor", "PDF converter", "online PDF",
     "edit PDF", "protect PDF", "unlock PDF", "sign PDF", "watermark PDF",
     "rotate PDF", "crop PDF", "OCR PDF", "extract PDF pages", "organize PDF",
-    "repair PDF", "scan to PDF", "HTML to PDF", "PDF security", "PDF optimization"
+    "repair PDF", "scan to PDF", "HTML to PDF", "PDF security", "PDF optimization",
+    "pdpdf", "pdpdf.vercel.app", "free online PDF tools", "PDF manipulation"
   ].join(", "),
-  authors: [{ name: "PDF All-in-One Team" }],
+  authors: [{ name: "PDPDF Team" }],
   robots: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
   category: "Productivity",
   classification: "Business Tools",
   openGraph: {
-    title: "PDF All-in-One - Free Online PDF Tools | Merge, Split, Compress, Convert PDF",
+    title: "PDPDF - Free Online PDF Tools | Merge, Split, Compress, Convert PDF",
     description: "Free online PDF tools: merge PDF files, split PDF, compress PDF, convert PDF to Word/Excel/JPG, edit PDF, protect PDF. No signup required. Fast, secure, unlimited use.",
     type: "website",
+    url: baseUrl,
     locale: "en_US",
-    siteName: "PDF All-in-One",
+    siteName: "PDPDF",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "PDF All-in-One - Free Online PDF Tools"
+        alt: "PDPDF - Free Online PDF Tools",
+        type: "image/jpeg"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "PDF All-in-One - Free Online PDF Tools | Merge, Split, Compress, Convert PDF",
+    site: "@pdpdf_tools",
+    title: "PDPDF - Free Online PDF Tools | Merge, Split, Compress, Convert PDF",
     description: "Free online PDF tools: merge PDF files, split PDF, compress PDF, convert PDF to Word/Excel/JPG, edit PDF, protect PDF. No signup required. Fast, secure, unlimited use.",
     images: ["/og-image.jpg"]
   },
   alternates: {
-    canonical: "https://pdf-all-in-one.com"
+    canonical: baseUrl
+  },
+  verification: {
+    google: "your-google-verification-code",
+    other: {
+      "msvalidate.01": "your-bing-verification-code"
+    }
   },
   other: {
-    "google-site-verification": "your-google-verification-code",
-    "msvalidate.01": "your-bing-verification-code"
+    "google-adsense-account": "ca-pub-6879569899763830"
   }
 };
 
