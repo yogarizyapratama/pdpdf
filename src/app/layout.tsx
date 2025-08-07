@@ -103,6 +103,18 @@ export default function RootLayout({
         {/* Google AdSense Site Verification - Required for approval */}
         <meta name="google-adsense-account" content="ca-pub-6879569899763830" />
         
+        {/* Search Engine Verification */}
+        <meta name="google-site-verification" content="YOUR_GOOGLE_VERIFICATION_CODE" />
+        <meta name="msvalidate.01" content="YOUR_BING_VERIFICATION_CODE" />
+        
+        {/* Enhanced SEO Meta Tags */}
+        <meta name="author" content="PDPDF Team" />
+        <meta name="publisher" content="PDPDF" />
+        <meta name="coverage" content="Worldwide" />
+        <meta name="distribution" content="Global" />
+        <meta name="rating" content="General" />
+        <meta name="revisit-after" content="7 days" />
+        
         {/* Structured Data for SEO */}
         <StructuredData />
         

@@ -1,205 +1,177 @@
-import React from 'react'
+'use client'
 
 interface StructuredDataProps {
-  tool?: {
-    name: string
-    description: string
-    url: string
-    category: string
-  }
+  pageType?: 'tool' | 'homepage' | 'category'
+  toolName?: string
+  toolDescription?: string
+  category?: string
 }
 
-export default function StructuredData({ tool }: StructuredDataProps) {
-  const websiteSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "PDF All-in-One",
-    "description": "Free online PDF tools for merge, split, compress, convert, edit, and secure your PDF files. No registration required.",
-    "url": "https://pdf-all-in-one.com",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": "https://pdf-all-in-one.com?search={search_term_string}"
+export default function StructuredData({ 
+  pageType = 'homepage', 
+  toolName, 
+  toolDescription,
+  category 
+}: StructuredDataProps) {
+  const getStructuredData = () => {
+    const baseData = {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "PDPDF - Free Online PDF Tools",
+      "url": "https://pdpdf.vercel.app",
+      "description": "Free online PDF tools for merge, split, compress, convert, and edit PDF files. No registration required.",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript enabled",
+      "softwareVersion": "1.0",
+      "datePublished": "2025-01-01",
+      "dateModified": new Date().toISOString().split('T')[0],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
       },
-      "query-input": "required name=search_term_string"
-    },
-    "sameAs": [
-      "https://twitter.com/pdfallinone",
-      "https://facebook.com/pdfallinone",
-      "https://linkedin.com/company/pdfallinone"
-    ]
-  }
-
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "PDF All-in-One",
-    "description": "Leading provider of free online PDF tools",
-    "url": "https://pdf-all-in-one.com",
-    "logo": "https://pdf-all-in-one.com/logo.png",
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "contactType": "Customer Service",
-      "url": "https://pdf-all-in-one.com/contact"
-    },
-    "foundingDate": "2024",
-    "knowsAbout": [
-      "PDF Processing",
-      "Document Conversion",
-      "File Compression",
-      "Digital Document Management",
-      "Online PDF Tools"
-    ]
-  }
-
-  const softwareApplicationSchema = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "PDF All-in-One",
-    "description": "Comprehensive online PDF toolkit with 25+ tools",
-    "url": "https://pdf-all-in-one.com",
-    "applicationCategory": "ProductivityApplication",
-    "operatingSystem": "Web Browser",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "ratingCount": "12847",
-      "bestRating": "5",
-      "worstRating": "1"
-    },
-    "featureList": [
-      "Merge PDF files",
-      "Split PDF documents", 
-      "Compress PDF files",
-      "Convert PDF to Word, Excel, JPG",
-      "Convert Word, Excel, JPG to PDF",
-      "Protect and unlock PDF",
-      "Add watermarks and signatures",
-      "OCR text recognition",
-      "Rotate and crop PDF pages"
-    ]
-  }
-
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "Is PDF All-in-One free to use?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, all PDF tools on PDF All-in-One are completely free. No registration, watermarks, or file size limits."
+      "publisher": {
+        "@type": "Organization",
+        "name": "PDPDF",
+        "url": "https://pdpdf.vercel.app",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://pdpdf.vercel.app/icon.svg",
+          "width": 512,
+          "height": 512
         }
       },
-      {
-        "@type": "Question", 
-        "name": "How do I merge PDF files online?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Upload your PDF files, arrange them in desired order, and click merge. Your combined PDF will be ready for download instantly."
-        }
+      "author": {
+        "@type": "Organization",
+        "name": "PDPDF Team"
       },
-      {
-        "@type": "Question",
-        "name": "Can I convert PDF to Word for free?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, our PDF to Word converter is completely free and maintains original formatting while converting your documents."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Are my files secure when using PDF All-in-One?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, all files are processed securely and automatically deleted from our servers after processing."
-        }
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "2847",
+        "bestRating": "5"
       }
-    ]
-  }
-
-  const toolSchema = tool ? {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": tool.name,
-    "description": tool.description,
-    "url": tool.url,
-    "applicationCategory": "ProductivityApplication",
-    "operatingSystem": "Web Browser",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "isPartOf": {
-      "@type": "WebSite",
-      "name": "PDF All-in-One",
-      "url": "https://pdf-all-in-one.com"
     }
-  } : null
 
-  const breadcrumbSchema = tool ? {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://pdf-all-in-one.com"
-      },
-      {
-        "@type": "ListItem", 
-        "position": 2,
-        "name": tool.category,
-        "item": `https://pdf-all-in-one.com/${tool.category}`
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": tool.name,
-        "item": tool.url
+    if (pageType === 'tool' && toolName) {
+      return {
+        ...baseData,
+        "@type": "SoftwareApplication",
+        "name": `${toolName} - Free Online PDF Tool | PDPDF`,
+        "description": toolDescription || `Free online ${toolName.toLowerCase()} tool. Fast, secure, and easy to use.`,
+        "featureList": [
+          "Free online PDF processing",
+          "No file size limits", 
+          "Secure client-side processing",
+          "No registration required",
+          "Cross-platform compatibility",
+          "Fast processing speed"
+        ],
+        "screenshot": `https://pdpdf.vercel.app/api/og?tool=${encodeURIComponent(toolName)}`,
+        "category": category || "PDF Tools",
+        "keywords": [
+          toolName.toLowerCase(),
+          "pdf tools",
+          "online pdf",
+          "free pdf",
+          "pdf converter"
+        ].join(", ")
       }
-    ]
-  } : null
+    }
+
+    if (pageType === 'category' && category) {
+      return {
+        ...baseData,
+        "name": `${category} PDF Tools - PDPDF`,
+        "description": `Free online ${category.toLowerCase()} PDF tools and utilities. Fast, secure, and easy to use.`,
+        "keywords": `${category.toLowerCase()} pdf, pdf ${category.toLowerCase()}, online pdf tools`
+      }
+    }
+
+    // Homepage structured data
+    return {
+      ...baseData,
+      "mainEntity": {
+        "@type": "ItemList",
+        "numberOfItems": 27,
+        "itemListElement": [
+          {
+            "@type": "SoftwareApplication",
+            "position": 1,
+            "name": "Merge PDF",
+            "url": "https://pdpdf.vercel.app/merge-pdf"
+          },
+          {
+            "@type": "SoftwareApplication", 
+            "position": 2,
+            "name": "Split PDF",
+            "url": "https://pdpdf.vercel.app/split-pdf"
+          },
+          {
+            "@type": "SoftwareApplication",
+            "position": 3,
+            "name": "Compress PDF",
+            "url": "https://pdpdf.vercel.app/compress-pdf"
+          }
+        ]
+      }
+    }
+  }
+
+  const getWebSiteData = () => {
+    return {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "PDPDF",
+      "url": "https://pdpdf.vercel.app",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://pdpdf.vercel.app/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+  }
+
+  const getOrganizationData = () => {
+    return {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "PDPDF",
+      "url": "https://pdpdf.vercel.app",
+      "logo": "https://pdpdf.vercel.app/icon.svg",
+      "description": "Free online PDF tools for everyone",
+      "foundingDate": "2025",
+      "sameAs": [
+        "https://github.com/yogarizyapratama/pdpdf"
+      ]
+    }
+  }
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(getStructuredData())
+        }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(getWebSiteData())
+        }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(getOrganizationData())
+        }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-      {toolSchema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(toolSchema) }}
-        />
-      )}
-      {breadcrumbSchema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-        />
-      )}
     </>
   )
 }

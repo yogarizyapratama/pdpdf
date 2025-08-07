@@ -1,3 +1,6 @@
+# PDPDF - Free Online PDF Tools
+# https://pdpdf.vercel.app
+
 User-agent: *
 Allow: /
 
@@ -29,6 +32,13 @@ Allow: /remove-pages
 Allow: /pagenumber-pdf
 Allow: /compare-pdf
 
+# Category pages
+Allow: /organize
+Allow: /convert
+Allow: /optimize
+Allow: /edit
+Allow: /security
+
 # Block access to sensitive areas
 Disallow: /api/
 Disallow: /_next/
@@ -36,9 +46,27 @@ Disallow: /admin/
 Disallow: /.well-known/
 Disallow: /temp/
 Disallow: /uploads/
+Disallow: *.json$
+Disallow: /*?*
 
 # Crawl delay for respectful crawling
 Crawl-delay: 1
 
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Block abusive bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
 # Sitemap location
-Sitemap: https://pdf-all-in-one.com/sitemap.xml
+Sitemap: https://pdpdf.vercel.app/sitemap.xml

@@ -1,12 +1,12 @@
 import React from 'react'
-import { seoConfig } from '@/lib/seo-config'
+import { toolSEOConfigs } from '@/lib/seo-config'
 
 interface ToolSEOContentProps {
   toolKey: string
 }
 
 export default function ToolSEOContent({ toolKey }: ToolSEOContentProps) {
-  const config = seoConfig[toolKey]
+  const config = toolSEOConfigs[toolKey]
   
   if (!config) return null
 
