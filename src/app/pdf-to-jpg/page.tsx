@@ -23,7 +23,7 @@ export default function PDFToJPGPage() {
     let isMounted = true;
     (async () => {
       if (typeof window !== 'undefined') {
-        const pdfjsLib = await import('pdfjs-dist');
+        const pdfjsLib = await import('react-pdf').then(module => module.pdfjs);
         pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
       }
     })();
@@ -49,7 +49,7 @@ export default function PDFToJPGPage() {
     setPages([])
     
     try {
-      const pdfjsLib = await import('pdfjs-dist')
+      const pdfjsLib = await import('react-pdf').then(module => module.pdfjs)
       const arrayBuffer = await selectedFile.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
       const numPages = pdf.numPages
@@ -67,7 +67,7 @@ export default function PDFToJPGPage() {
         canvas.width = viewport.width
         
         await page.render({
-          canvas: canvas,
+          
           canvasContext: context,
           viewport: viewport
         }).promise
@@ -120,7 +120,7 @@ export default function PDFToJPGPage() {
     setError('')
 
     try {
-      const pdfjsLib = await import('pdfjs-dist')
+      const pdfjsLib = await import('react-pdf').then(module => module.pdfjs)
       const arrayBuffer = await file.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
       
@@ -140,7 +140,7 @@ export default function PDFToJPGPage() {
         }
         
         await page.render({
-          canvas: canvas,
+          
           canvasContext: context,
           viewport: viewport
         }).promise

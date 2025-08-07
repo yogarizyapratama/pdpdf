@@ -42,7 +42,7 @@ export default function PDFToWordPage() {
 
     try {
       // Import required libraries
-      const pdfjsLib = await import('pdfjs-dist')
+      const pdfjsLib = await import('react-pdf').then(module => module.pdfjs)
       
       // Initialize PDF.js
       pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'

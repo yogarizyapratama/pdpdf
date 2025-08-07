@@ -14,15 +14,15 @@ import { downloadBlob, formatFileSize } from '@/lib/utils'
 
 // Dynamically import PDF.js and Tesseract.js to avoid SSR issues
 const dynamicImports = {
-  pdfjsLib: () => import('pdfjs-dist'),
+  pdfjsLib: () => import('react-pdf').then(module => module.pdfjs),
   tesseract: () => import('tesseract.js'),
   pdfLib: () => import('pdf-lib')
 }
 
 // Set up PDF.js worker only on client side
 if (typeof window !== 'undefined') {
-  import('pdfjs-dist').then((pdfjsLib) => {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+  import('react-pdf').then(({ pdfjs }) => {
+    pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
   })
 }
 
@@ -91,7 +91,6 @@ export default function OCRPDFPage() {
         context.fillRect(0, 0, canvas.width, canvas.height)
         
         await page.render({
-          canvas: canvas,
           canvasContext: context,
           viewport: viewport
         }).promise

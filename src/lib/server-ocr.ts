@@ -1,6 +1,5 @@
 import fs from 'fs';
 import { createWorker } from 'tesseract.js';
-import * as pdfjsLib from 'pdfjs-dist';
 
 export async function ocrPDF(filePath: string): Promise<string> {
   try {

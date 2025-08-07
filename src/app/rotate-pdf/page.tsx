@@ -16,7 +16,7 @@ import { downloadBlob, formatFileSize } from '@/lib/utils'
 
 // Set up PDF.js worker only on client side
 if (typeof window !== 'undefined') {
-  import('pdfjs-dist').then((pdfjsLib) => {
+  import('react-pdf').then(({ pdfjs }) => pdfjs).then((pdfjsLib) => {
     pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
   })
 }
@@ -47,7 +47,7 @@ export default function RotatePDFPage() {
     setPages([])
     
     try {
-      const pdfjsLib = await import('pdfjs-dist')
+      const pdfjsLib = await import('react-pdf').then(module => module.pdfjs)
       const arrayBuffer = await selectedFile.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
       const numPages = pdf.numPages
@@ -66,7 +66,7 @@ export default function RotatePDFPage() {
         canvas.width = viewport.width
         
         await page.render({
-          canvas: canvas,
+          
           canvasContext: context,
           viewport: viewport
         }).promise
