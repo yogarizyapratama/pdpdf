@@ -67,6 +67,7 @@ export default function PDFToJPGPage() {
         canvas.width = viewport.width
         
         await page.render({
+          canvas: canvas,
           canvasContext: context,
           viewport: viewport
         }).promise
@@ -139,6 +140,7 @@ export default function PDFToJPGPage() {
         }
         
         await page.render({
+          canvas: canvas,
           canvasContext: context,
           viewport: viewport
         }).promise

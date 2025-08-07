@@ -91,6 +91,7 @@ export default function OCRPDFPage() {
         context.fillRect(0, 0, canvas.width, canvas.height)
         
         await page.render({
+          canvas: canvas,
           canvasContext: context,
           viewport: viewport
         }).promise

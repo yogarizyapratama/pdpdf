@@ -66,6 +66,7 @@ export default function RotatePDFPage() {
         canvas.width = viewport.width
         
         await page.render({
+          canvas: canvas,
           canvasContext: context,
           viewport: viewport
         }).promise
