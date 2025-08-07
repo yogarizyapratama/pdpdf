@@ -70,3 +70,4 @@ Disallow: /
 
 # Sitemap location
 Sitemap: https://pdpdf.vercel.app/sitemap.xml
+Sitemap: https://pdpdf.vercel.app/sitemap-static.xml
