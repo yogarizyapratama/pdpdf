@@ -10,6 +10,7 @@ import PDFThumbnail from '@/components/PDFThumbnail'
 import PDFErrorDisplay from '@/components/PDFErrorDisplay'
 import TestPDFButton from '@/components/TestPDFButton'
 import AdBanner from '@/components/AdBanner'
+import WorkingAdBanner from '@/components/WorkingAdBanner'
 import ToolSEOContent from '@/components/ToolSEOContent'
 import { PDFProcessor, ProcessingProgress } from '@/lib/pdf-processor'
 import { validatePDF } from '@/lib/pdf-validation'
@@ -111,10 +112,6 @@ export default function SplitPDFPage() {
       return
     }
 
-      {/* Show thumbnails after file upload and totalPages available */}
-      {file && totalPages > 0 && (
-        <PDFThumbnailsGrid pdfFile={file} totalPages={totalPages} />
-      )}
     if (splitMode === 'ranges' && ranges.length === 0) {
       setError('Please add at least one page range')
       return
@@ -135,7 +132,7 @@ export default function SplitPDFPage() {
             end: i + 1
           }))
           
-          const splitPdfBytes = await PDFProcessor.splitPDF(file, individualRanges, setProgress)
+          const splitPdfBytes = await PDFProcessor.splitPDFByRanges(file, individualRanges, setProgress)
           
           splitPdfBytes.forEach((pdfBytes, index) => {
             const blob = new Blob([pdfBytes], { type: 'application/pdf' })
@@ -148,7 +145,7 @@ export default function SplitPDFPage() {
             end: range.end
           }))
           
-          const splitPdfBytes = await PDFProcessor.splitPDF(file, splitRanges, setProgress)
+          const splitPdfBytes = await PDFProcessor.splitPDFByRanges(file, splitRanges, setProgress)
           
           splitPdfBytes.forEach((pdfBytes, index) => {
             const range = ranges[index]
@@ -157,6 +154,7 @@ export default function SplitPDFPage() {
             downloadBlob(blob, filename)
           })
         }
+        
       } catch (err) {
         setError('Failed to split PDF. Please ensure the file is valid and page ranges are correct.')
         console.error('Split error:', err)
@@ -171,6 +169,18 @@ export default function SplitPDFPage() {
     <>
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <Header />
+        
+        {/* 🎯 TOP BANNER AD - Maximum Visibility */}
+        <div className="w-full bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-6xl mx-auto px-4 py-3">
+            <WorkingAdBanner 
+              position="top"
+              adFormat="horizontal"
+              className="w-full"
+              style={{ minHeight: '90px' }}
+            />
+          </div>
+        </div>
         
         <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto">
@@ -224,7 +234,7 @@ export default function SplitPDFPage() {
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300">{file.name}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {totalPages} halaman • {(file.size / 1024 / 1024).toFixed(2)} MB
+                      {totalPages} pages • {(file.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
                   <div className="flex space-x-2">
@@ -275,14 +285,14 @@ export default function SplitPDFPage() {
                       />
                       <BookOpen className="h-6 w-6 text-blue-600" />
                       <h4 className="font-semibold text-gray-900 dark:text-white">
-                        Split Berdasarkan Rentang Halaman
+                        Split by Page Range
                       </h4>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                      Tentukan halaman mana saja yang ingin dipisah menjadi file terpisah
+                      Specify which pages you want to split into separate files
                     </p>
                     <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded text-xs">
-                      <strong>Contoh:</strong> Halaman 1-5 → file1.pdf, Halaman 6-10 → file2.pdf
+                      <strong>Example:</strong> Pages 1-5 → file1.pdf, Pages 6-10 → file2.pdf
                     </div>
                   </div>
 
@@ -305,14 +315,14 @@ export default function SplitPDFPage() {
                       />
                       <FileText className="h-6 w-6 text-green-600" />
                       <h4 className="font-semibold text-gray-900 dark:text-white">
-                        Pisah Setiap Halaman
+                        Split Every Page
                       </h4>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                      Setiap halaman akan menjadi file PDF terpisah
+                      Each page will become a separate PDF file
                     </p>
                     <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded text-xs">
-                      <strong>Contoh:</strong> 5 halaman → 5 file PDF terpisah
+                      <strong>Example:</strong> 5 pages → 5 separate PDF files
                     </div>
                   </div>
                 </div>
@@ -320,10 +330,10 @@ export default function SplitPDFPage() {
                 {totalPages > 0 && (
                   <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      📄 File PDF Anda memiliki <strong>{totalPages} halaman</strong>. 
+                      📄 Your PDF has <strong>{totalPages} pages</strong>. 
                       {splitMode === 'individual' 
                         ? ` Akan menghasilkan ${totalPages} file PDF terpisah.`
-                        : ` Atur rentang halaman di bawah ini.`
+                        : ` Set up page ranges below.`
                       }
                     </p>
                   </div>
@@ -335,10 +345,10 @@ export default function SplitPDFPage() {
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Atur Rentang Halaman
+                        Set Page Ranges
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Tentukan halaman mana yang ingin dipisah menjadi file terpisah
+                        Specify which pages you want to split into separate files
                       </p>
                     </div>
                     <button
@@ -353,7 +363,7 @@ export default function SplitPDFPage() {
                   {ranges.length === 0 && (
                     <div className="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
                       <p className="text-gray-500 dark:text-gray-400 mb-4">
-                        Belum ada rentang halaman yang ditentukan
+                        No page ranges defined yet
                       </p>
                       <button
                         onClick={addRange}
@@ -383,7 +393,7 @@ export default function SplitPDFPage() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Halaman Awal
+                              Start Page
                             </label>
                             <input
                               type="number"
@@ -397,7 +407,7 @@ export default function SplitPDFPage() {
                           
                           <div>
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Halaman Akhir
+                              End Page
                             </label>
                             <input
                               type="number"
@@ -425,7 +435,7 @@ export default function SplitPDFPage() {
 
                         <div className="mt-3 text-xs text-gray-600 dark:text-gray-400">
                           📄 Akan menghasilkan: <strong>{range.name || `Pages ${range.start}-${range.end}`}.pdf</strong> 
-                          ({range.end - range.start + 1} halaman)
+                          ({range.end - range.start + 1} pages)
                         </div>
                       </div>
                     ))}
@@ -437,7 +447,7 @@ export default function SplitPDFPage() {
                         📋 Ringkasan Split
                       </h4>
                       <p className="text-sm text-green-700 dark:text-green-300">
-                        Total akan menghasilkan <strong>{ranges.length} file PDF</strong> dari {totalPages} halaman asli.
+                        Total will generate <strong>{ranges.length} PDF files</strong> from {totalPages} original pages.
                       </p>
                     </div>
                   )}
@@ -510,7 +520,7 @@ export default function SplitPDFPage() {
 
                 {splitMode === 'ranges' && ranges.length === 0 && (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Tambahkan minimal satu rentang halaman untuk melanjutkan
+                    Add at least one page range to continue
                   </p>
                 )}
               </div>
@@ -576,7 +586,6 @@ export default function SplitPDFPage() {
       </main>
       {/* SEO Content */}
     <ToolSEOContent toolKey="split-pdf" />
-
 
       <Footer />
     </div>
@@ -732,6 +741,27 @@ export default function SplitPDFPage() {
     {showAdModal && (
       <AdBanner position="bottom"  />
     )}
+    
+    {/* 🎯 STRATEGIC BOTTOM ADS - Multiple Revenue Streams */}
+    <div className="mt-8 space-y-6 max-w-6xl mx-auto px-4">
+      {/* Horizontal banner */}
+      <WorkingAdBanner 
+        position="bottom"
+        adFormat="horizontal"
+        className="w-full"
+        style={{ minHeight: '90px' }}
+      />
+      
+      {/* Rectangle ad for additional revenue */}
+      <div className="flex justify-center">
+        <WorkingAdBanner 
+          position="bottom"
+          adFormat="rectangle"
+          className="max-w-sm"
+          style={{ minHeight: '250px' }}
+        />
+      </div>
+    </div>
   </>
   )
 }

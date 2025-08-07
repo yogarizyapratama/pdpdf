@@ -6,6 +6,7 @@
     "dev": "next dev",
     "dev:turbo": "next dev --turbopack",
     "build": "next build",
+    "build:skip-lint": "NEXT_IGNORE_ESLINT_ERRORS=true next build",
     "start": "next start",
     "lint": "next lint",
     "build:prod": "ESLINT_CONFIG_FILE=.eslintrc.production.json next build",

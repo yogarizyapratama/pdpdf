@@ -9,7 +9,9 @@ import FileUpload from '@/components/FileUpload'
 import AdBanner from '@/components/AdBanner'
 import PDFThumbnail from '@/components/PDFThumbnail'
 import PDFThumbnailsGrid from '@/components/PDFThumbnailsGrid'
-// Note: SimplePDFSigner, BasicPDFSigner, HybridPDFSigner components seem to be missing
+import SimplePDFSigner from '@/components/SimplePDFSigner'
+import BasicPDFSigner from '@/components/BasicPDFSigner'
+import HybridPDFSigner from '@/components/HybridPDFSigner'
 
 export default function SignPDFPage() {
   const [file, setFile] = useState<File | null>(null)
@@ -62,26 +64,26 @@ export default function SignPDFPage() {
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <Header />
         
-        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="flex-1 container mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
           <div className="max-w-4xl mx-auto">
             {/* Header */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-6 sm:mb-8 px-2">
               <div className="flex justify-center mb-4">
-                <div className="p-4 bg-blue-100 dark:bg-blue-900 rounded-full">
-                  <PenTool className="h-12 w-12 text-blue-600 dark:text-blue-400" />
+                <div className="p-3 sm:p-4 bg-blue-100 dark:bg-blue-900 rounded-full">
+                  <PenTool className="h-8 w-8 sm:h-12 sm:w-12 text-blue-600 dark:text-blue-400" />
                 </div>
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
                 Sign PDF
               </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-300">
+              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300">
                 Add digital signatures to your PDF documents
               </p>
             </div>
 
             {/* File Upload */}
             {!file && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700 mx-2 sm:mx-0">
                 <FileUpload 
                   onFilesSelected={handleFileSelected}
                   multiple={false}
@@ -93,23 +95,23 @@ export default function SignPDFPage() {
 
             {/* File Info & Canvas PDF Signer */}
             {file && (
-              <div className="space-y-8">
+              <div className="space-y-6 sm:space-y-8 mx-2 sm:mx-0">
                 {/* File Info with Thumbnails */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                         Selected File
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-300">{file.name}</p>
+                      <p className="text-gray-600 dark:text-gray-300 truncate">{file.name}</p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         {(file.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                       <button
                         onClick={() => setShowPreview(true)}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                        className="flex-1 sm:flex-none px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
                       >
                         Preview
                       </button>
@@ -117,7 +119,7 @@ export default function SignPDFPage() {
                         onClick={() => {
                           setFile(null)
                         }}
-                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                        className="flex-1 sm:flex-none px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
                       >
                         Remove
                       </button>
@@ -139,24 +141,25 @@ export default function SignPDFPage() {
                 </div>
 
                 {/* Signer Mode Toggle */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                     Choose Signing Mode
                   </h3>
-                  <div className="flex space-x-4">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                     <button
                       onClick={() => setSignerMode('simple')}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
+                      className={`flex-1 px-3 sm:px-4 py-3 sm:py-2 rounded-lg transition-colors text-sm sm:text-base truncate ${
                         signerMode === 'simple'
                           ? 'bg-blue-600 text-white'
                           : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
                       }`}
                     >
-                      📋 Simple Mode (Recommended)
+                      <span className="block sm:inline">📋 Simple Mode</span>
+                      <span className="hidden sm:inline"> (Recommended)</span>
                     </button>
                     <button
                       onClick={() => setSignerMode('basic')}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
+                      className={`flex-1 px-3 sm:px-4 py-3 sm:py-2 rounded-lg transition-colors text-sm sm:text-base truncate ${
                         signerMode === 'basic'
                           ? 'bg-blue-600 text-white'
                           : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
@@ -166,7 +169,7 @@ export default function SignPDFPage() {
                     </button>
                     <button
                       onClick={() => setSignerMode('hybrid')}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
+                      className={`flex-1 px-3 sm:px-4 py-3 sm:py-2 rounded-lg transition-colors text-sm sm:text-base truncate ${
                         signerMode === 'hybrid'
                           ? 'bg-blue-600 text-white'
                           : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
@@ -186,33 +189,34 @@ export default function SignPDFPage() {
                 </div>
 
                 {/* PDF Signer Component */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                                {signerMode === 'simple' && (
-                <div className="text-center py-8 text-gray-500">
-                  Simple PDF signing feature coming soon...
-                </div>
-              )}
-              {signerMode === 'basic' && (
-                <div className="text-center py-8 text-gray-500">
-                  Basic PDF signing feature coming soon...
-                </div>
-              )}
-              {signerMode === 'hybrid' && (
-                <div className="text-center py-8 text-gray-500">
-                  Hybrid PDF signing feature coming soon...
-                </div>
-              )}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-2 sm:p-4 lg:p-6 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  {signerMode === 'simple' && (
+                    <SimplePDFSigner 
+                      file={file}
+                      onFileChange={setFile}
+                    />
+                  )}
+                  {signerMode === 'basic' && (
+                    <BasicPDFSigner 
+                      file={file}
+                    />
+                  )}
+                  {signerMode === 'hybrid' && (
+                    <HybridPDFSigner 
+                      file={file}
+                    />
+                  )}
                 </div>
               </div>
             )}
 
             {/* Info Section */}
-            <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="mt-6 sm:mt-8 bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700 mx-2 sm:mx-0">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 How to Sign PDFs
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {/* Simple Mode Instructions */}
                 <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4">
                   <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">

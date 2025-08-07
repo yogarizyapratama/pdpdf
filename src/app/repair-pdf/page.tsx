@@ -6,6 +6,8 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import FileUpload from '@/components/FileUpload'
 import AdBanner from '@/components/AdBanner'
+import AdLayoutWrapper from '@/components/AdLayoutWrapper'
+import { ProcessingAd, SuccessAd } from '@/components/ProcessingAd'
 import { formatFileSize } from '@/lib/utils'
 
 export default function RepairPDFPage() {
@@ -45,10 +47,10 @@ export default function RepairPDFPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <AdLayoutWrapper>
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
@@ -128,28 +130,44 @@ export default function RepairPDFPage() {
                 </button>
               </div>
 
-              {/* Download Section */}
-              {downloadUrl && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
-                        ✓ PDF Repaired Successfully!
-                      </h3>
-                      <p className="text-green-700 dark:text-green-300">
-                        Your PDF has been repaired and is ready for download.
-                      </p>
-                    </div>
-                    <a
-                      href={downloadUrl}
-                      download={file.name.replace('.pdf', '_repaired.pdf')}
-                      className="flex items-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-                    >
-                      <Download className="h-5 w-5" />
-                      <span>Download</span>
-                    </a>
-                  </div>
+              {/* Processing Ad - hanya muncul saat processing */}
+              {isProcessing && (
+                <div className="mt-6">
+                  <ProcessingAd 
+                    isProcessing={isProcessing} 
+                    processingText="Repairing your PDF file..."
+                  />
                 </div>
+              )}
+
+              {/* Download Section with Success Ad */}
+              {downloadUrl && (
+                <SuccessAd 
+                  showAd={true} 
+                  successMessage="PDF repaired successfully!"
+                  className="mt-6"
+                >
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
+                          ✓ PDF Repaired Successfully!
+                        </h3>
+                        <p className="text-green-700 dark:text-green-300">
+                          Your PDF has been repaired and is ready for download.
+                        </p>
+                      </div>
+                      <a
+                        href={downloadUrl}
+                        download={file.name.replace('.pdf', '_repaired.pdf')}
+                        className="flex items-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                      >
+                        <Download className="h-5 w-5" />
+                        <span>Download</span>
+                      </a>
+                    </div>
+                  </div>
+                </SuccessAd>
               )}
             </div>
           )}
@@ -176,7 +194,7 @@ export default function RepairPDFPage() {
             </div>
           </div>
         </div>
-      </main>
+      </AdLayoutWrapper>
 
       <Footer />
 

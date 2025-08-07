@@ -5,17 +5,19 @@ import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 import "@/lib/pdf-config"; // Initialize PDF.js worker globally
 import GoogleAdSenseScript from "../components/GoogleAdSenseScript";
-import AdTestingPanel from "../components/AdTestingPanel";
+import AdSenseManager from "../components/AdSenseManager";
+import AdSenseDebugPanel from "../components/AdSenseDebugPanel";
+// import AdTestingPanel from "../components/AdTestingPanel";
 import { ToastProvider } from '@/components/GlobalToast';
-import BugReportButton from '@/components/BugReportButton';
-import FeedbackForm from '@/components/FeedbackForm';
-import OnboardingTour from '@/components/OnboardingTour';
-import KeyboardShortcuts from '@/components/KeyboardShortcuts';
-import QuickActions from '@/components/QuickActions';
-import ContextMenu from '@/components/ContextMenu';
+// import BugReportButton from '@/components/BugReportButton';
+// import FeedbackForm from '@/components/FeedbackForm';
+// import OnboardingTour from '@/components/OnboardingTour';
+// import KeyboardShortcuts from '@/components/KeyboardShortcuts';
+// import QuickActions from '@/components/QuickActions';
+// import ContextMenu from '@/components/ContextMenu';
 import StructuredData from '@/components/StructuredData';
-import GoogleAnalytics from '@/components/GoogleAnalytics';
-import FloatingToolPanel from '@/components/FloatingToolPanel';
+// import GoogleAnalytics from '@/components/GoogleAnalytics';
+// import FloatingToolPanel from '@/components/FloatingToolPanel';
 
 export const metadata: Metadata = {
   title: "PDF All-in-One - Free Online PDF Tools | Merge, Split, Compress, Convert PDF",
@@ -80,25 +82,34 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-icon.png" />
         <meta name="theme-color" content="#1f2937" />
         
+        {/* Google AdSense Site Verification - Required for approval */}
+        <meta name="google-adsense-account" content="ca-pub-6879569899763830" />
+        
         {/* Structured Data for SEO */}
         <StructuredData />
         
         {/* Google AdSense Script */}
         <GoogleAdSenseScript />
+        
+        {/* AdSense Manager - Prevents hydration errors and duplicate ads */}
+        <AdSenseManager />
       </head>
       <body className="antialiased min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        <GoogleAnalytics />
+        {/* <GoogleAnalytics /> */}
         <ToastProvider>
           <div className="flex flex-col min-h-screen">
             {children}
           </div>
           
           {/* Consolidated Floating Tool Panel - Less intrusive */}
-          <FloatingToolPanel />
+          {/* <FloatingToolPanel /> */}
           
           {/* Ad Testing Panel (only shows in development with production env) */}
-          <AdTestingPanel />
-          <ContextMenu />
+          {/* <AdTestingPanel /> */}
+          {/* <ContextMenu /> */}
+          
+          {/* AdSense Debug Panel - Development Only */}
+          <AdSenseDebugPanel />
         </ToastProvider>
       </body>
     </html>

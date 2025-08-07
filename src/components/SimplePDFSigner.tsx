@@ -662,12 +662,12 @@ const SimplePDFSigner: React.FC<SimplePDFSignerProps> = ({ file, onFileChange })
   }
 
   return (
-    <div className={`space-y-4 md:space-y-6 ${isMobileView ? 'px-1' : ''}`}>
+    <div className={`space-y-4 md:space-y-6 ${isMobileView ? 'px-1' : ''} w-full overflow-hidden`}>
       {/* Controls */}
-      <div className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">
+      <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 md:p-6 rounded-lg shadow-lg w-full overflow-hidden">
         <h2 className="text-lg md:text-xl font-semibold mb-4">✍️ PDF Signature</h2>
         
-        <div className="space-y-4">
+        <div className="space-y-4 w-full overflow-hidden">
           {/* Signature Input */}
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -683,7 +683,7 @@ const SimplePDFSigner: React.FC<SimplePDFSignerProps> = ({ file, onFileChange })
           </div>
 
           {/* Signature Type Buttons */}
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
             <button
               onClick={() => {
                 if (signatureText.trim()) {
@@ -693,37 +693,41 @@ const SimplePDFSigner: React.FC<SimplePDFSignerProps> = ({ file, onFileChange })
                 }
               }}
               disabled={!signatureText.trim()}
-              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 text-sm font-medium"
+              className="flex-1 px-3 sm:px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 text-sm font-medium min-w-0 truncate"
             >
-              📝 Add Text Signature
+              <span className="block sm:inline">📝 Add Text</span>
+              <span className="hidden sm:inline"> Signature</span>
             </button>
             
             <button
               onClick={startDrawingSignature}
-              className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+              className="flex-1 px-3 sm:px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium min-w-0 truncate"
             >
-              ✏️ Draw Signature
+              <span className="block sm:inline">✏️ Draw</span>
+              <span className="hidden sm:inline"> Signature</span>
             </button>
           </div>
 
           {/* Page Navigation */}
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 px-2">
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage <= 1}
-              className="px-3 py-2 bg-gray-600 text-white rounded disabled:bg-gray-400 text-sm"
+              className="px-2 sm:px-3 py-2 bg-gray-600 text-white rounded disabled:bg-gray-400 text-xs sm:text-sm min-w-0 flex-shrink-0"
             >
-              Previous
+              <span className="hidden sm:inline">Previous</span>
+              <span className="sm:hidden">‹</span>
             </button>
-            <span className="text-sm font-medium">
+            <span className="text-xs sm:text-sm font-medium text-center px-1">
               Page {currentPage} of {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage >= totalPages}
-              className="px-3 py-2 bg-gray-600 text-white rounded disabled:bg-gray-400 text-sm"
+              className="px-2 sm:px-3 py-2 bg-gray-600 text-white rounded disabled:bg-gray-400 text-xs sm:text-sm min-w-0 flex-shrink-0"
             >
-              Next
+              <span className="hidden sm:inline">Next</span>
+              <span className="sm:hidden">›</span>
             </button>
           </div>
 
@@ -770,7 +774,7 @@ const SimplePDFSigner: React.FC<SimplePDFSignerProps> = ({ file, onFileChange })
       </div>
 
       {/* PDF Preview with Signatures */}
-      <div className="bg-white dark:bg-gray-800 p-1 sm:p-2 md:p-6 rounded-lg shadow-lg">
+      <div className="bg-white dark:bg-gray-800 p-1 sm:p-2 md:p-6 rounded-lg shadow-lg w-full overflow-hidden">
         <div className="mb-2 sm:mb-3 px-2 sm:px-0">
           <h3 className="text-base sm:text-lg font-medium">📄 PDF Preview</h3>
           <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
@@ -909,11 +913,11 @@ const SimplePDFSigner: React.FC<SimplePDFSignerProps> = ({ file, onFileChange })
       </div>
 
       {/* Sign Button - Moved to bottom */}
-      <div className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg">
+      <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 md:p-6 rounded-lg shadow-lg w-full overflow-hidden">
         <button
           onClick={signAndDownload}
           disabled={signatures.length === 0 || isProcessing}
-          className="w-full py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 font-medium text-lg"
+          className="w-full py-3 sm:py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 font-medium text-base sm:text-lg min-w-0"
         >
           {isProcessing ? 'Signing PDF...' : '✅ Sign & Download PDF'}
         </button>
@@ -954,9 +958,9 @@ const SimplePDFSigner: React.FC<SimplePDFSignerProps> = ({ file, onFileChange })
 
       {/* Signature Drawing Modal - Mobile Optimized */}
       {showSignatureCanvas && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-lg w-full max-w-lg mx-4">
-            <h3 className="text-lg font-semibold mb-4">✏️ Draw Your Signature</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 md:p-6 rounded-lg w-full max-w-lg mx-2 sm:mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-base sm:text-lg font-semibold mb-4">✏️ Draw Your Signature</h3>
             
             <div className="border border-gray-300 dark:border-gray-600 rounded-lg mb-4 p-2">
               <canvas
@@ -986,24 +990,25 @@ const SimplePDFSigner: React.FC<SimplePDFSignerProps> = ({ file, onFileChange })
               </div>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-2 justify-end">
+            <div className="flex flex-col sm:flex-row gap-2 justify-end w-full">
               <button
                 onClick={clearSignatureCanvas}
-                className="px-4 py-3 sm:py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-3 sm:py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium text-sm sm:text-base min-w-0"
               >
-                🗑️ Clear
+                <span className="block sm:inline">🗑️ Clear</span>
               </button>
               <button
                 onClick={() => setShowSignatureCanvas(false)}
-                className="px-4 py-3 sm:py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 font-medium"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-3 sm:py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 font-medium text-sm sm:text-base min-w-0"
               >
-                ❌ Cancel
+                <span className="block sm:inline">❌ Cancel</span>
               </button>
               <button
                 onClick={saveDrawnSignature}
-                className="px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm sm:text-base min-w-0"
               >
-                ✅ Save & Place
+                <span className="block sm:inline">✅ Save</span>
+                <span className="hidden sm:inline"> & Place</span>
               </button>
             </div>
           </div>

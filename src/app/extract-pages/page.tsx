@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Scissors, Download, Eye } from 'lucide-react'
+import { PDFDocument } from 'pdf-lib'
 import StructuredData from '@/components/StructuredData'
 import ToolLayout from '@/components/ToolLayout'
 import Header from '@/components/Header'
@@ -32,7 +33,6 @@ export default function ExtractPagesPage() {
       // Get total pages using pdf-lib
       try {
         const arrayBuffer = await selectedFile.arrayBuffer()
-        const { PDFDocument } = await import('pdf-lib')
         const pdf = await PDFDocument.load(arrayBuffer)
         const pageCount = pdf.getPageCount()
         setTotalPages(pageCount)

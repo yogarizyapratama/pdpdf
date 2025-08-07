@@ -7,11 +7,12 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import FileUpload from '@/components/FileUpload'
 import PDFThumbnail from '@/components/PDFThumbnail'
-import GoogleAdSense from '@/components/GoogleAdSense'
-import ToolSEOContent from '@/components/ToolSEOContent'
+import AdBanner from '@/components/AdBanner'
+import { ProcessingAd, SuccessAd } from '@/components/ProcessingAd'
 import { PDFProcessor, ProcessingProgress } from '@/lib/pdf-processor'
 import { downloadBlob, formatFileSize } from '@/lib/utils'
 import PDFThumbnailsGrid from '@/components/PDFThumbnailsGrid'
+import WorkingAdBanner from '@/components/WorkingAdBanner'
 
 type CompressionLevel = 'low' | 'medium' | 'high' | 'maximum'
 
@@ -148,25 +149,37 @@ export default function CompressPDFPage() {
   ]
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      <Header />
-      
-      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <div className="p-4 bg-purple-100 dark:bg-purple-900 rounded-full">
-                <Zap className="h-12 w-12 text-purple-600 dark:text-purple-400" />
+    <>
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <Header />
+           {/* 🎯 TOP BANNER AD - Prime Real Estate untuk Revenue Maksimal */}
+              <div className="w-full bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+                <div className="max-w-6xl mx-auto px-4 py-3">
+                  <WorkingAdBanner 
+                    position="top"
+                    adFormat="horizontal"
+                    className="w-full"
+                    style={{ minHeight: '90px' }}
+                  />
+                </div>
               </div>
+        
+        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-4">
+                <div className="p-4 bg-purple-100 dark:bg-purple-900 rounded-full">
+                  <Zap className="h-12 w-12 text-purple-600 dark:text-purple-400" />
+                </div>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Compress PDF File
+              </h1>
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                Reduce your PDF file size while maintaining quality. Choose from different compression levels based on your needs.
+              </p>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Compress PDF File
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Reduce your PDF file size while maintaining quality. Choose from different compression levels based on your needs.
-            </p>
-          </div>
 
           {/* Upload Section */}
           {!file && (
@@ -184,33 +197,35 @@ export default function CompressPDFPage() {
           {file && !result && (
             <div className="space-y-8">
               {/* File Info */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between mb-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                   <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                      <FileText className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                    <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg flex-shrink-0">
+                      <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
                         {file.name}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-300">
+                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                         Original size: {formatFileSize(file.size)}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       onClick={() => setShowPreview(true)}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                      className="flex items-center justify-center px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
                     >
-                      Preview
+                      <Eye className="h-4 w-4 mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">Preview</span>
                     </button>
                     <button
                       onClick={resetFile}
-                      className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                      className="flex items-center justify-center px-3 sm:px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors"
                     >
-                      Change File
+                      <FileText className="h-4 w-4 mr-1 sm:mr-2" />
+                      <span>Change</span>
                     </button>
                   </div>
                 </div>
@@ -227,25 +242,20 @@ export default function CompressPDFPage() {
 
                 {/* Google AdSense - Content Ad (Allowed in content area) */}
                 <div className="my-6">
-                  <GoogleAdSense 
-                    adSlot="1234567890"
-                    adFormat="rectangle"
-                    style={{ width: '300px', height: '250px', margin: '0 auto' }}
-                    className="flex justify-center"
-                  />
+                  <AdBanner position="middle" />
                 </div>
               </div>
 
               {/* Compression Level Selection */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">
                   Compression Level
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {compressionOptions.map((option) => (
                     <label 
                       key={option.level}
-                      className="flex items-start space-x-4 p-4 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       <input
                         type="radio"
@@ -255,18 +265,18 @@ export default function CompressPDFPage() {
                         onChange={(e) => setCompressionLevel(e.target.value as CompressionLevel)}
                         className="w-4 h-4 text-purple-600 mt-1"
                       />
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                          <div className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">
                             {option.name}
                           </div>
                           {option.level === 'medium' && (
-                            <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 text-xs rounded-full">
+                            <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 text-xs rounded-full self-start">
                               Recommended
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">
                           {option.description}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-500">
@@ -308,25 +318,20 @@ export default function CompressPDFPage() {
               {/* Google AdSense - Above Button (Natural placement) */}
               {!isProcessing && (
                 <div className="mb-8">
-                  <GoogleAdSense 
-                    adSlot="2345678901"
-                    adFormat="horizontal"
-                    style={{ width: '728px', height: '90px', margin: '0 auto' }}
-                    className="flex justify-center"
-                  />
+                  <AdBanner position="middle" />
                 </div>
               )}
 
               {/* Compress Button */}
-              <div className="flex justify-center">
+              <div className="flex justify-center px-4">
                 <button
                   onClick={compressPDF}
                   disabled={isProcessing}
-                  className="flex items-center space-x-3 px-8 py-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-lg font-medium"
+                  className="flex items-center justify-center space-x-2 sm:space-x-3 px-6 sm:px-8 py-3 sm:py-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-base sm:text-lg font-medium w-full max-w-xs sm:max-w-sm"
                 >
-                  <Zap className="h-6 w-6" />
-                  <span>
-                    {isProcessing ? 'Compressing PDF...' : 'Compress PDF'}
+                  <Zap className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                  <span className="truncate">
+                    {isProcessing ? 'Compressing...' : 'Compress PDF'}
                   </span>
                 </button>
               </div>
@@ -438,12 +443,7 @@ export default function CompressPDFPage() {
 
           {/* Google AdSense - Footer Banner (Standard placement) */}
           <div className="mt-8">
-            <GoogleAdSense 
-              adSlot="3456789012"
-              adFormat="horizontal"
-              style={{ width: '728px', height: '90px', margin: '0 auto' }}
-              className="flex justify-center"
-            />
+            <AdBanner position="bottom" />
           </div>
         </div>
       </main>
@@ -479,9 +479,7 @@ export default function CompressPDFPage() {
           </div>
         </div>
       )}
-
-      {/* SEO Content */}
-      <ToolSEOContent toolKey="compress-pdf" />
     </div>
+    </>
   )
 }

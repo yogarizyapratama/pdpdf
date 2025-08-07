@@ -27,6 +27,7 @@ import {
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import AdBanner from '@/components/AdBanner'
+import WorkingAdBanner from '@/components/WorkingAdBanner'
 import SearchComponent from '@/components/SearchComponent'
 
 interface ToolCard {
@@ -339,6 +340,18 @@ export default function HomePage() {
             />
           </div>
         </div>
+
+         {/* 🎯 TOP HOMEPAGE AD - Maximum Traffic Capture */}
+      <div className="w-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm border-b border-gray-200 dark:border-gray-700 mb-5">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <WorkingAdBanner 
+            position="top"
+            adFormat="horizontal"
+            className="w-full"
+            style={{ minHeight: '90px' }}
+          />
+        </div>
+      </div>
 
         {/* Top 2 Most Used Tools - Featured Section */}
         {searchQuery === '' && selectedCategory === 'all' && (
@@ -691,7 +704,29 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+        
+        {/* 🎯 HOMEPAGE MIDDLE AD - Between Content Sections */}
+        <div className="my-12 max-w-6xl mx-auto px-4">
+          <WorkingAdBanner 
+            position="middle"
+            adFormat="horizontal"
+            className="w-full"
+            style={{ minHeight: '90px' }}
+          />
+        </div>
       </main>
+      
+      {/* 🎯 HOMEPAGE BOTTOM AD - Exit Intent Revenue */}
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-6">
+        <div className="max-w-6xl mx-auto px-4">
+          <WorkingAdBanner 
+            position="bottom"
+            adFormat="horizontal"
+            className="w-full"
+            style={{ minHeight: '90px' }}
+          />
+        </div>
+      </div>
 
       <Footer />
     </div>

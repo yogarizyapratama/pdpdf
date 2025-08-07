@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import GoogleAdSense from './GoogleAdSense'
 
 interface AdBannerProps {
@@ -23,24 +22,8 @@ export default function AdBanner({
   className = '',
   style 
 }: AdBannerProps) {
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
-  // Get appropriate ad format based on position and device
+  // Get appropriate ad format based on position (no client-side detection)
   const getAdFormat = () => {
-    if (isMobile) {
-      return position === 'sidebar' ? 'rectangle' : 'horizontal'
-    }
-    
     switch (position) {
       case 'top':
       case 'bottom':
@@ -52,20 +35,12 @@ export default function AdBanner({
     }
   }
 
-  // Get appropriate styling based on position
+  // Get consistent styling (no client-side responsive logic)
   const getAdStyle = () => {
     const baseStyle = {
-      display: 'block',
+      display: 'block' as const,
       textAlign: 'center' as const,
       ...style
-    }
-
-    if (isMobile) {
-      return {
-        ...baseStyle,
-        minHeight: position === 'sidebar' ? '250px' : '100px',
-        width: '100%'
-      }
     }
 
     switch (position) {
@@ -94,7 +69,7 @@ export default function AdBanner({
   const containerClasses = `
     ad-banner 
     ${className}
-    ${position === 'sidebar' ? 'md:sticky md:top-4' : 'w-full'}
+    ${position === 'sidebar' ? 'hidden md:block md:sticky md:top-4' : 'w-full'}
     ${position === 'top' ? 'mb-6' : ''}
     ${position === 'bottom' ? 'mt-6' : ''}
     ${position === 'middle' ? 'my-8' : ''}

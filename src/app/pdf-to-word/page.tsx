@@ -6,6 +6,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import PDFThumbnail from '@/components/PDFThumbnail'
 import AdBanner from '@/components/AdBanner'
+import WorkingAdBanner from '@/components/WorkingAdBanner'
 import ToolSEOContent from '@/components/ToolSEOContent'
 import FileUpload from '@/components/FileUpload'
 import { formatFileSize } from '@/lib/utils'
@@ -33,7 +34,7 @@ export default function PDFToWordPage() {
   const processPDFToWord = async () => {
     if (!file) return
 
-    // Start processing immediately without intrusive ad modal
+    // Start processing immediately
     setIsProcessing(true)
 
     try {
@@ -107,6 +108,18 @@ export default function PDFToWordPage() {
     <>
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <Header />
+        
+        {/* 🎯 TOP BANNER AD - First Impression Revenue */}
+        <div className="w-full bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-6xl mx-auto px-4 py-3">
+            <WorkingAdBanner 
+              position="top"
+              adFormat="horizontal"
+              className="w-full"
+              style={{ minHeight: '90px' }}
+            />
+          </div>
+        </div>
         
         <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-4xl mx-auto">
@@ -474,12 +487,45 @@ export default function PDFToWordPage() {
       {/* SEO Content */}
       <ToolSEOContent toolKey="pdf-to-word" />
 
-      {/* Non-intrusive Ad Section */}
+      {/* 🎯 SUCCESS-BASED ADS - High-Value Moments */}
       {downloadUrl && (
-        <div className="mt-8">
-          <AdBanner position="bottom" />
+        <div className="mt-8 space-y-6 max-w-6xl mx-auto px-4">
+          {/* Success celebration ad */}
+          <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4">
+            <div className="text-center mb-4">
+              <div className="text-green-600 dark:text-green-400 text-sm font-medium">
+                ✅ Conversion successful! Support our free tools:
+              </div>
+            </div>
+            <WorkingAdBanner 
+              position="bottom"
+              adFormat="horizontal"
+              className="w-full"
+              style={{ minHeight: '90px' }}
+            />
+          </div>
+          
+          {/* Additional rectangle ad */}
+          <div className="flex justify-center">
+            <WorkingAdBanner 
+              position="bottom"
+              adFormat="rectangle"
+              className="max-w-sm"
+              style={{ minHeight: '250px' }}
+            />
+          </div>
         </div>
       )}
+      
+      {/* Bottom banner even without success */}
+      <div className="mt-8 max-w-6xl mx-auto px-4">
+        <WorkingAdBanner 
+          position="bottom"
+          adFormat="horizontal"
+          className="w-full"
+          style={{ minHeight: '90px' }}
+        />
+      </div>
     </>
   )
 }

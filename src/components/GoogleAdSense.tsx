@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { canProcessAdElement, markAsProcessing, markAsProcessed, registerAdElement, safeAdSensePush } from '@/lib/adsense-state'
 
 interface GoogleAdSenseProps {
   adSlot: string
@@ -9,12 +10,6 @@ interface GoogleAdSenseProps {
   style?: React.CSSProperties
   className?: string
   adClient?: string
-}
-
-declare global {
-  interface Window {
-    adsbygoogle: unknown[]
-  }
 }
 
 export default function GoogleAdSense({ 
@@ -26,18 +21,52 @@ export default function GoogleAdSense({
   adClient = process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT || 'ca-pub-XXXXXXXXXXXXXXXXX'
 }: GoogleAdSenseProps) {
   const [adError, setAdError] = useState(false)
+  const adRef = useRef<HTMLModElement>(null)
+  const initialized = useRef(false)
+  const uniqueId = useRef(`google-adsense-${adSlot}-${Date.now()}`)
 
   useEffect(() => {
     const loadAd = () => {
       try {
-        if (typeof window !== 'undefined' && window.adsbygoogle) {
-          const adElement = document.querySelector(`[data-ad-slot="${adSlot}"]`)
-          if (adElement && !adElement.getAttribute('data-ad-status')) {
-            (window.adsbygoogle = window.adsbygoogle || []).push({})
+        if (typeof window !== 'undefined' && !initialized.current && adRef.current) {
+          // Check if element has proper dimensions before initializing
+          const element = adRef.current
+          const rect = element.getBoundingClientRect()
+          
+          if (rect.width === 0 || rect.height === 0) {
+            console.log(`⚠️ GoogleAdSense ${adSlot}: Element has zero dimensions, retrying...`)
+            setTimeout(loadAd, 200)
+            return
+          }
+
+          // Ensure adsbygoogle array exists and is properly initialized
+          if (!window.adsbygoogle || !Array.isArray(window.adsbygoogle)) {
+            console.log(`ℹ️ GoogleAdSense ${adSlot}: Initializing adsbygoogle array`)
+            window.adsbygoogle = []
+          }
+          
+          // Use the global state manager to prevent duplicates
+          if (canProcessAdElement(element, uniqueId.current) && registerAdElement(uniqueId.current)) {
+            // Mark as processing before push to prevent race conditions
+            markAsProcessing(element, uniqueId.current)
+            
+            const success = safeAdSensePush({}, `GoogleAdSense-${adSlot}`)
+            
+            if (success) {
+              initialized.current = true
+              // Mark as processed
+              markAsProcessed(element, uniqueId.current)
+              console.log(`✅ GoogleAdSense ad initialized: ${uniqueId.current}`)
+            } else {
+              console.error(`❌ GoogleAdSense ad failed: ${uniqueId.current}`)
+              setAdError(true)
+            }
+          } else {
+            console.log(`ℹ️ GoogleAdSense ad already processed: ${uniqueId.current}`)
           }
         }
       } catch (error) {
-        console.error('AdSense error:', error)
+        console.error(`❌ GoogleAdSense error (${uniqueId.current}):`, error)
         setAdError(true)
       }
     }
@@ -63,16 +92,39 @@ export default function GoogleAdSense({
   }
 
   return (
-    <div className={`adsense-container ${className}`}>
+    <div 
+      className={`adsense-container ${className}`} 
+      style={{ 
+        minWidth: adFormat === 'rectangle' ? '300px' : '250px', 
+        minHeight: adFormat === 'rectangle' ? '250px' : '200px' 
+      }}
+    >
       {/* Google AdSense Ad Label (Required by Google Policy) */}
       <div className="text-xs text-gray-500 dark:text-gray-400 text-center mb-1 font-normal">
         Advertisements
       </div>
       
-      <div className="ad-wrapper">
+      <div 
+        className="ad-wrapper" 
+        style={{ 
+          width: '100%', 
+          height: '100%',
+          minWidth: adFormat === 'rectangle' ? '300px' : '250px',
+          minHeight: adFormat === 'rectangle' ? '250px' : '200px'
+        }}
+      >
         <ins
+          ref={adRef}
           className="adsbygoogle"
-          style={style}
+          style={{
+            display: 'block',
+            textAlign: 'center',
+            width: '100%',
+            minWidth: adFormat === 'rectangle' ? '300px' : '250px',
+            minHeight: adFormat === 'rectangle' ? '250px' : '200px',
+            // Merge custom styles while maintaining consistency
+            ...(style || {})
+          }}
           data-ad-client={adClient}
           data-ad-slot={adSlot}
           data-ad-format={adFormat}

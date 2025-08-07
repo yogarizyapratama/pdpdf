@@ -8,6 +8,8 @@ import PDFThumbnail from '@/components/PDFThumbnail'
 import { Merge, RotateCcw, Download, EyeOff } from 'lucide-react'
 import SortableFileCard from '@/components/SortableFileCard'
 import AdBanner from '@/components/AdBanner'
+import AdSenseAd from '@/components/AdSenseAd'
+import WorkingAdBanner from '@/components/WorkingAdBanner'
 import StructuredData from '@/components/StructuredData'
 import { PDFProcessor, ProcessingProgress } from '@/lib/pdf-processor'
 import { downloadBlob, generateId } from '@/lib/utils'
@@ -111,6 +113,7 @@ export default function MergePDFPage() {
       
       const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' })
       downloadBlob(blob, 'merged-document.pdf')
+        
     } catch (err) {
       setError('Failed to merge PDFs. Please ensure all files are valid PDF documents.')
       console.error('Merge error:', err)
@@ -151,6 +154,18 @@ export default function MergePDFPage() {
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <Header />
       
+      {/* 🎯 TOP BANNER AD - Prime Real Estate untuk Revenue Maksimal */}
+      <div className="w-full bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <WorkingAdBanner 
+            position="top"
+            adFormat="horizontal"
+            className="w-full"
+            style={{ minHeight: '90px' }}
+          />
+        </div>
+      </div>
+      
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -177,12 +192,32 @@ export default function MergePDFPage() {
                 maxSize={50}
                 accept=".pdf"
               />
+              
+              {/* 🎯 MID-CONTENT AD - High Engagement Zone */}
+              <div className="mt-8">
+                <WorkingAdBanner 
+                  position="middle"
+                  adFormat="rectangle"
+                  className="max-w-md mx-auto"
+                  style={{ minHeight: '250px' }}
+                />
+              </div>
             </div>
           )}
 
           {/* File List */}
           {filesWithIds.length > 0 && (
             <div className="mb-8">
+              {/* 🎯 AFTER UPLOAD AD - User engaged, ready to see ads */}
+              <div className="mb-6">
+                <WorkingAdBanner 
+                  position="middle"
+                  adFormat="horizontal"
+                  className="w-full max-w-4xl mx-auto"
+                  style={{ minHeight: '90px' }}
+                />
+              </div>
+              
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                   Files to Merge ({filesWithIds.length})
@@ -321,6 +356,7 @@ export default function MergePDFPage() {
       </main>
 
       <Footer />
+    </div>
 
       {/* Preview Modal */}
       {previewFile && (
@@ -344,15 +380,20 @@ export default function MergePDFPage() {
         </div>
       )}
 
-      {/* Bottom Ad Banner */}
-      {/* PDF Thumbnails Preview */}
+            {/* PDF Thumbnails Preview */}
       {previewFile && totalPages > 0 && (
         <PDFThumbnailsGrid pdfFile={previewFile} totalPages={totalPages} />
       )}
-      <div className="mt-8">
-        <AdBanner position="bottom" />
+      
+      {/* 🎯 BOTTOM BANNER AD - Exit Intent Revenue */}
+      <div className="mt-8 mb-4 max-w-6xl mx-auto px-4">
+        <WorkingAdBanner 
+          position="bottom"
+          adFormat="horizontal"
+          className="w-full"
+          style={{ minHeight: '90px' }}
+        />
       </div>
-    </div>
     </>
   )
 }

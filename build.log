@@ -1,0 +1,333 @@
+
+> pdfallinone@0.1.0 build
+> next build
+
+   ▲ Next.js 15.4.5
+   - Environments: .env.local, .env.production
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 13.0s
+   Linting and checking validity of types ...
+
+Failed to compile.
+
+./src/app/compress-pdf/page.tsx
+13:10  Warning: 'ProcessingAd' is defined but never used.  @typescript-eslint/no-unused-vars
+13:24  Warning: 'SuccessAd' is defined but never used.  @typescript-eslint/no-unused-vars
+14:10  Warning: 'PDFProcessor' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/crop-pdf/page.tsx
+7:30  Warning: 'Eye' is defined but never used.  @typescript-eslint/no-unused-vars
+7:35  Warning: 'Settings' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/excel-to-pdf/page.tsx
+5:8  Warning: 'StructuredData' is defined but never used.  @typescript-eslint/no-unused-vars
+6:8  Warning: 'ToolLayout' is defined but never used.  @typescript-eslint/no-unused-vars
+266:9  Warning: 'resetFiles' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/extract-pages/page.tsx
+6:8  Warning: 'StructuredData' is defined but never used.  @typescript-eslint/no-unused-vars
+7:8  Warning: 'ToolLayout' is defined but never used.  @typescript-eslint/no-unused-vars
+143:8  Warning: Expected an assignment or function call and instead saw an expression.  @typescript-eslint/no-unused-expressions
+
+./src/app/html-to-pdf/page.tsx
+5:8  Warning: 'StructuredData' is defined but never used.  @typescript-eslint/no-unused-vars
+6:8  Warning: 'ToolLayout' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/jpg-to-pdf/page.tsx
+5:8  Warning: 'StructuredData' is defined but never used.  @typescript-eslint/no-unused-vars
+6:8  Warning: 'ToolLayout' is defined but never used.  @typescript-eslint/no-unused-vars
+82:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/layout.tsx
+10:8  Warning: 'BugReportButton' is defined but never used.  @typescript-eslint/no-unused-vars
+11:8  Warning: 'FeedbackForm' is defined but never used.  @typescript-eslint/no-unused-vars
+12:8  Warning: 'OnboardingTour' is defined but never used.  @typescript-eslint/no-unused-vars
+13:8  Warning: 'KeyboardShortcuts' is defined but never used.  @typescript-eslint/no-unused-vars
+14:8  Warning: 'QuickActions' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/merge-pdf/page.tsx
+7:8  Warning: 'PDFThumbnail' is defined but never used.  @typescript-eslint/no-unused-vars
+11:8  Warning: 'AdSenseAd' is defined but never used.  @typescript-eslint/no-unused-vars
+47:22  Warning: 'setTotalPages' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/ocr-pdf/page.tsx
+8:8  Warning: 'StructuredData' is defined but never used.  @typescript-eslint/no-unused-vars
+9:8  Warning: 'ToolLayout' is defined but never used.  @typescript-eslint/no-unused-vars
+160:9  Warning: 'createSearchablePDF' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+405:29  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/organize-pdf/page.tsx
+5:8  Warning: 'StructuredData' is defined but never used.  @typescript-eslint/no-unused-vars
+6:8  Warning: 'ToolLayout' is defined but never used.  @typescript-eslint/no-unused-vars
+17:8  Warning: 'PDFThumbnailsGrid' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/page.tsx
+639:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+653:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+667:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+681:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+695:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/pdf-to-jpg/page.tsx
+23:9  Warning: 'isMounted' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+343:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/pdf-to-powerpoint/page.tsx
+5:8  Warning: 'StructuredData' is defined but never used.  @typescript-eslint/no-unused-vars
+6:8  Warning: 'ToolLayout' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/powerpoint-to-pdf/page.tsx
+5:8  Warning: 'StructuredData' is defined but never used.  @typescript-eslint/no-unused-vars
+6:8  Warning: 'ToolLayout' is defined but never used.  @typescript-eslint/no-unused-vars
+180:9  Warning: 'resetFiles' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/repair-pdf/page-new.tsx
+164:25  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+164:36  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./src/app/rotate-pdf/page.tsx
+8:10  Warning: 'PDFDocument' is defined but never used.  @typescript-eslint/no-unused-vars
+8:23  Warning: 'degrees' is defined but never used.  @typescript-eslint/no-unused-vars
+147:16  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+298:33  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/scan-to-pdf/page.tsx
+7:8  Warning: 'PDFThumbnail' is defined but never used.  @typescript-eslint/no-unused-vars
+258:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+389:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/sign-pdf/page.tsx
+17:23  Warning: 'setShowAdModal' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+23:54  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+30:24  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+31:22  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/split-pdf/page.tsx
+7:8  Warning: 'PDFThumbnailsGrid' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/unlock-pdf/page.tsx
+5:8  Warning: 'StructuredData' is defined but never used.  @typescript-eslint/no-unused-vars
+6:8  Warning: 'ToolLayout' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/AdTestingPanel.tsx
+40:27  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/components/BasicPDFSigner.tsx
+5:48  Warning: 'FileText' is defined but never used.  @typescript-eslint/no-unused-vars
+21:48  Warning: 'onClose' is defined but never used.  @typescript-eslint/no-unused-vars
+29:10  Warning: 'previewMode' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+29:23  Warning: 'setPreviewMode' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+35:6  Warning: React Hook useEffect has a missing dependency: 'loadPDFInfo'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+114:6  Warning: React Hook useEffect has a missing dependency: 'drawPagePreview'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+347:21  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+347:38  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+373:24  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+373:38  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+376:24  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+376:40  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./src/components/CanvasPDFSigner.tsx
+5:26  Warning: 'pdfjs' is defined but never used.  @typescript-eslint/no-unused-vars
+6:29  Warning: 'Move' is defined but never used.  @typescript-eslint/no-unused-vars
+6:43  Warning: 'RotateCcw' is defined but never used.  @typescript-eslint/no-unused-vars
+26:10  Warning: 'pages' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+26:38  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+42:9  Warning: 'hiddenCanvasRef' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+46:6  Warning: React Hook useEffect has a missing dependency: 'loadPDF'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+52:6  Warning: React Hook useEffect has a missing dependency: 'renderPDFPage'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/DrawablePDFSigner.tsx
+5:37  Warning: 'RotateCcw' is defined but never used.  @typescript-eslint/no-unused-vars
+5:48  Warning: 'ZoomIn' is defined but never used.  @typescript-eslint/no-unused-vars
+5:56  Warning: 'ZoomOut' is defined but never used.  @typescript-eslint/no-unused-vars
+34:10  Warning: 'zoom' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+34:16  Warning: 'setZoom' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+40:9  Warning: 'canvasRef' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+48:6  Warning: React Hook useEffect has a missing dependency: 'loadPDF'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+66:35  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+115:6  Warning: React Hook useCallback has a missing dependency: 'drawSignatures'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+337:14  Error: 'signature' is never reassigned. Use 'const' instead.  prefer-const
+350:16  Error: 'handle' is never reassigned. Use 'const' instead.  prefer-const
+404:16  Error: 'signature' is never reassigned. Use 'const' instead.  prefer-const
+417:18  Error: 'handle' is never reassigned. Use 'const' instead.  prefer-const
+618:56  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+618:71  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+619:49  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+619:65  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./src/components/Footer.tsx
+2:43  Warning: 'Shield' is defined but never used.  @typescript-eslint/no-unused-vars
+3:8  Warning: 'PrivacyBadge' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/GoogleAdSenseUnit.tsx
+24:9  Warning: 'adRef' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/GoogleAnalytics.tsx
+114:7  Error: Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free.  @typescript-eslint/ban-ts-comment
+116:7  Error: Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free.  @typescript-eslint/ban-ts-comment
+117:29  Error: Use the rest parameters instead of 'arguments'.  prefer-rest-params
+
+./src/components/HybridPDFSigner.tsx
+4:26  Warning: 'pdfjs' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/PDFPagePreview.tsx
+4:26  Warning: 'pdfjs' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/PDFPreview.tsx
+4:26  Warning: 'pdfjs' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/PDFResultPreview.tsx
+17:52  Warning: 'totalPages' is defined but never used.  @typescript-eslint/no-unused-vars
+19:10  Warning: 'loadedPages' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/PDFThumbnail.tsx
+4:26  Warning: 'pdfjs' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/SearchComponent-advanced.tsx
+41:3  Warning: 'onSearchChange' is defined but never used.  @typescript-eslint/no-unused-vars
+42:3  Warning: 'onCategoryChange' is defined but never used.  @typescript-eslint/no-unused-vars
+54:10  Warning: 'isLoadingSuggestions' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+165:6  Warning: React Hook useEffect has an unnecessary dependency: 'onFilteredToolsChange'. Either exclude it or remove the dependency array. Outer scope values like 'onFilteredToolsChange' aren't valid dependencies because mutating them doesn't re-render the component.  react-hooks/exhaustive-deps
+412:60  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+523:56  Warning: 'tools' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/SimplePDFSigner.tsx
+31:66  Warning: 'onFileChange' is defined but never used.  @typescript-eslint/no-unused-vars
+40:10  Warning: 'pdfDimensions' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+42:10  Warning: 'resizeHandle' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+42:24  Warning: 'setResizeHandle' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+145:15  Error: 'calculatedHeight' is never reassigned. Use 'const' instead.  prefer-const
+539:26  Warning: 'pageWidth' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+886:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+932:44  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+932:63  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+933:45  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+933:60  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+938:23  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+938:39  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./src/components/SimplePDFSignerFixed.tsx
+29:66  Warning: 'onFileChange' is defined but never used.  @typescript-eslint/no-unused-vars
+35:22  Warning: 'setTotalPages' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+259:26  Warning: 'pageWidth' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+464:44  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+464:63  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+465:45  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+465:60  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+468:23  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+468:39  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./src/components/TestPDFButton.tsx
+19:17  Warning: 'width' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ToolLayout.tsx
+12:38  Warning: 'title' is defined but never used.  @typescript-eslint/no-unused-vars
+12:45  Warning: 'description' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/advanced-compression.ts
+2:23  Warning: 'PDFPage' is defined but never used.  @typescript-eslint/no-unused-vars
+66:10  Warning: 'getSaveOptions' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/advanced-pdf-processor.ts
+1:52  Warning: 'PageSizes' is defined but never used.  @typescript-eslint/no-unused-vars
+1:63  Warning: 'PDFPage' is defined but never used.  @typescript-eslint/no-unused-vars
+1:72  Warning: 'PDFFont' is defined but never used.  @typescript-eslint/no-unused-vars
+59:40  Warning: 'pdfDoc' is defined but never used.  @typescript-eslint/no-unused-vars
+65:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/pdf-loader.ts
+59:1  Warning: Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+./src/lib/pdf-processor.ts
+156:40  Warning: 'quality' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/server-crop.ts
+14:22  Warning: 'pageWidth' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/server-excel.ts
+19:55  Warning: 'sheetId' is defined but never used.  @typescript-eslint/no-unused-vars
+21:15  Warning: 'width' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+23:44  Warning: 'rowNumber' is defined but never used.  @typescript-eslint/no-unused-vars
+25:43  Warning: 'colNumber' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/server-ocr.ts
+1:8  Warning: 'fs' is defined but never used.  @typescript-eslint/no-unused-vars
+2:10  Warning: 'createWorker' is defined but never used.  @typescript-eslint/no-unused-vars
+3:13  Warning: 'pdfjsLib' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/server-pagenumber.ts
+82:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/server-ppt.ts
+4:8  Warning: 'fs' is defined but never used.  @typescript-eslint/no-unused-vars
+12:13  Warning: 'width' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/server-protect.ts
+4:52  Warning: 'password' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/server-unlock.ts
+4:51  Warning: 'password' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/server-word.ts
+19:13  Warning: 'width' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/advanced-merge.ts
+3:23  Warning: 'PDFPage' is defined but never used.  @typescript-eslint/no-unused-vars
+5:10  Warning: 'createReadStream' is defined but never used.  @typescript-eslint/no-unused-vars
+108:24  Warning: 'height' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/advanced-ocr.ts
+52:50  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+62:9  Error: 'imagesToProcess' is never reassigned. Use 'const' instead.  prefer-const
+
+./src/pages/api/advanced-word-to-pdf.ts
+38:42  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/pages/api/batch-process.ts
+5:8  Warning: 'path' is defined but never used.  @typescript-eslint/no-unused-vars
+17:27  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+45:38  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+201:9  Warning: 'compressionRatio' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+309:66  Warning: 'options' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/compare-pdf.ts
+22:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/compress-pdf.ts
+4:8  Warning: 'path' is defined but never used.  @typescript-eslint/no-unused-vars
+25:13  Warning: 'originalSize' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/ocr-pdf.ts
+19:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/pagenumber-pdf.ts
+2:8  Warning: 'formidable' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/pdfa-convert.ts
+20:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/powerpoint-to-pdf.ts
+20:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/protect-pdf.ts
+3:10  Warning: 'protectPDF' is defined but never used.  @typescript-eslint/no-unused-vars
+16:13  Warning: 'filePath' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+21:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/redact-pdf.ts
+29:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/repair-pdf.ts
+20:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/unlock-pdf.ts
+19:13  Warning: 'unlockedBuffer' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+23:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/pages/api/word-to-pdf.ts
+20:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules

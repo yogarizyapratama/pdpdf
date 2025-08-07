@@ -42,9 +42,6 @@ export default function ScanToPDFPage() {
       setIsProcessing(true)
 
       try {
-        // Import pdf-lib dynamically
-        const { PDFDocument } = await import('pdf-lib')
-        
         // Create a new PDF document
         const pdfDoc = await PDFDocument.create()
         

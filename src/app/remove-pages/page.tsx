@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Trash2, Eye, Download } from 'lucide-react'
+import { PDFDocument } from 'pdf-lib'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import PDFThumbnail from '@/components/PDFThumbnail'
@@ -30,13 +31,14 @@ export default function RemovePagesPage() {
       // Get total pages using pdf-lib
       try {
         const arrayBuffer = await selectedFile.arrayBuffer()
-        const { PDFDocument } = await import('pdf-lib')
         const pdf = await PDFDocument.load(arrayBuffer)
         const pageCount = pdf.getPageCount()
         setTotalPages(pageCount)
       } catch (error) {
         console.error('Error reading PDF:', error)
         setTotalPages(0)
+        // Show user-friendly error
+        alert('Error reading PDF file. Please make sure it is a valid PDF.')
       }
     }
   }
@@ -60,11 +62,26 @@ export default function RemovePagesPage() {
       setIsProcessing(true)
 
       try {
-        // Simulate processing - in production, implement actual PDF page removal
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        // Load the PDF
+        const arrayBuffer = await file.arrayBuffer()
+        const pdf = await PDFDocument.load(arrayBuffer)
+        const totalPages = pdf.getPageCount()
         
-        // For now, just download the original file
-        const blob = new Blob([file], { type: 'application/pdf' })
+        // Create new PDF without the selected pages
+        const newPdf = await PDFDocument.create()
+        
+        // Copy all pages except the ones to be removed
+        for (let i = 0; i < totalPages; i++) {
+          const pageNumber = i + 1
+          if (!pagesToRemove.includes(pageNumber)) {
+            const [page] = await newPdf.copyPages(pdf, [i])
+            newPdf.addPage(page)
+          }
+        }
+        
+        // Generate the new PDF
+        const pdfBytes = await newPdf.save()
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' })
         const url = URL.createObjectURL(blob)
         setDownloadUrl(url)
         
