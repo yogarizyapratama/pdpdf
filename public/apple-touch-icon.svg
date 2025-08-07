@@ -1,0 +1,39 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with rounded corners for iOS -->
+  <rect width="180" height="180" rx="32" fill="url(#gradient1)"/>
+  
+  <!-- PDF Document -->
+  <rect x="45" y="30" width="90" height="120" rx="8" fill="white" stroke="url(#gradient2)" stroke-width="2"/>
+  
+  <!-- Folded Corner -->
+  <path d="M120 30L135 45V38C135 33.582 131.418 30 127 30H120Z" fill="#E5E7EB"/>
+  <path d="M120 30V42C120 46.418 123.582 50 128 50H135L120 30Z" fill="#F3F4F6"/>
+  
+  <!-- PDF Text -->
+  <text x="90" y="70" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="16" fill="url(#gradient2)">PDF</text>
+  
+  <!-- Simplified Tools Grid -->
+  <g transform="translate(60, 90)">
+    <!-- Row 1 -->
+    <rect x="0" y="0" width="15" height="10" rx="1" fill="#10B981"/>
+    <rect x="22.5" y="0" width="15" height="10" rx="1" fill="#3B82F6"/>
+    <rect x="45" y="0" width="15" height="10" rx="1" fill="#8B5CF6"/>
+    
+    <!-- Row 2 -->
+    <rect x="0" y="15" width="15" height="10" rx="1" fill="#F59E0B"/>
+    <rect x="22.5" y="15" width="15" height="10" rx="1" fill="#EF4444"/>
+    <rect x="45" y="15" width="15" height="10" rx="1" fill="#06B6D4"/>
+  </g>
+  
+  <!-- Gradient Definitions -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667EEA"/>
+      <stop offset="100%" style="stop-color:#764BA2"/>
+    </linearGradient>
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4F46E5"/>
+      <stop offset="100%" style="stop-color:#7C3AED"/>
+    </linearGradient>
+  </defs>
+</svg>

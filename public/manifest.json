@@ -1,0 +1,75 @@
+{
+  "name": "PDPDF - Free PDF Tools Online",
+  "short_name": "PDPDF",
+  "description": "Free online PDF tools: merge, split, compress, convert, edit, protect PDF files. No signup required.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#667EEA",
+  "theme_color": "#667EEA",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon-32x32.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "PDPDF Tools Overview"
+    },
+    {
+      "src": "/screenshot-mobile.png", 
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "PDPDF Mobile View"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Merge PDF",
+      "short_name": "Merge",
+      "description": "Combine multiple PDF files into one",
+      "url": "/merge-pdf",
+      "icons": [{ "src": "/icon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Split PDF",
+      "short_name": "Split", 
+      "description": "Split PDF into separate pages",
+      "url": "/split-pdf",
+      "icons": [{ "src": "/icon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Compress PDF",
+      "short_name": "Compress",
+      "description": "Reduce PDF file size",
+      "url": "/compress-pdf", 
+      "icons": [{ "src": "/icon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Convert PDF",
+      "short_name": "Convert",
+      "description": "Convert PDF to other formats",
+      "url": "/pdf-to-jpg",
+      "icons": [{ "src": "/icon.svg", "sizes": "192x192" }]
+    }
+  ]
+}

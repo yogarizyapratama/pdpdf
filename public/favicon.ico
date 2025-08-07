@@ -1,0 +1,7 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simplified favicon for 16x16 -->
+  <rect width="16" height="16" rx="3" fill="#667EEA"/>
+  <rect x="4" y="3" width="8" height="10" rx="1" fill="white"/>
+  <path d="M10 3L12 5V4C12 3.448 11.552 3 11 3H10Z" fill="#E5E7EB"/>
+  <text x="8" y="11" text-anchor="middle" font-family="system-ui" font-weight="bold" font-size="4" fill="#4F46E5">PDF</text>
+</svg>
